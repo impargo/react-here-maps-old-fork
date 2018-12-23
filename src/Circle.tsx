@@ -18,7 +18,7 @@ export interface CircleContext {
 export class Circle extends React.Component<CircleProps, object> {
   // define the context types that are passed down from a <HEREMap> instance
   public static contextTypes = {
-    map: React.PropTypes.object,
+    map: Proptypes.object,
   };
 
   public static defaultProps = {
