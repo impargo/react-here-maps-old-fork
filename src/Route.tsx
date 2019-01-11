@@ -75,7 +75,12 @@ export class Route extends React.Component<RoutesProps, object> {
       points.forEach(point => {
         route.pushPoint(point as H.geo.Point);
       })
-      routeLine = new H.map.Polyline(route, {style: { lineWidth, fillColor, strokeColor }, zIndex, data });
+      routeLine = new H.map.Polyline(route, {
+        style: { lineWidth, fillColor, strokeColor },
+        arrows: { fillColor: 'white', frequency: 2, width: 0.8, length: 0.7 },
+        zIndex,
+        data
+      });
       routesGroup.addObject(routeLine);
       this.route = route;
       this.routeLine = routeLine;
