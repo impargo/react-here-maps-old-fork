@@ -51,7 +51,8 @@ var Route = /** @class */ (function (_super) {
             var routeLine = void 0;
             route_1 = new H.geo.LineString();
             points.forEach(function (point) {
-                route_1.pushPoint(point);
+                var lat = point.lat, lon = point.lon;
+                route_1.pushPoint(new H.geo.Point(lat, lon));
             });
             routeLine = new H.map.Polyline(route_1, { style: { lineWidth: lineWidth, fillColor: fillColor, strokeColor: strokeColor }, zIndex: zIndex, data: data });
             routesGroup.addObject(routeLine);

@@ -44,11 +44,14 @@ var HEREMap = /** @class */ (function (_super) {
         var map = this.state.map;
         return map.screenToGeo(x, y);
     };
-    HEREMap.prototype.zoomOnMarkers = function () {
+    HEREMap.prototype.zoomOnMarkers = function (animate) {
+        if (animate === void 0) { animate = true; }
         var _a = this.state, map = _a.map, markersGroup = _a.markersGroup;
+        if (!markersGroup)
+            return;
         var viewBounds = markersGroup.getBounds();
         if (viewBounds)
-            map.setViewBounds(viewBounds);
+            map.setViewBounds(viewBounds, animate);
     };
     HEREMap.prototype.getChildContext = function () {
         var _a = this.state, map = _a.map, markersGroup = _a.markersGroup, routesGroup = _a.routesGroup;
@@ -61,7 +64,7 @@ var HEREMap = /** @class */ (function (_super) {
         var stylesheetUrl = (secure === true ? "https:" : "") + "//js.api.here.com/v3/3.0/mapsjs-ui.css";
         get_link_1["default"](stylesheetUrl, "HERE Maps UI");
         cache_1.onAllLoad(function () {
-            var _a = _this.props, appId = _a.appId, appCode = _a.appCode, center = _a.center, hidpi = _a.hidpi, interactive = _a.interactive, secure = _a.secure, zoom = _a.zoom, routes = _a.routes, useSatellite = _a.useSatellite, trafficLayer = _a.trafficLayer, onMapAvailable = _a.onMapAvailable;
+            var _a = _this.props, appId = _a.appId, appCode = _a.appCode, center = _a.center, hidpi = _a.hidpi, interactive = _a.interactive, secure = _a.secure, zoom = _a.zoom, routes = _a.routes, useSatellite = _a.useSatellite, trafficLayer = _a.trafficLayer, onMapAvailable = _a.onMapAvailable, disableMapSettings = _a.disableMapSettings, language = _a.language;
             // get the platform to base the maps on
             var platform = get_platform_1["default"]({
                 app_code: appCode,
@@ -114,11 +117,13 @@ var HEREMap = /** @class */ (function (_super) {
                 // Behavior implements default interactions for pan/zoom
                 var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
                 // create the default UI for the map
-                var ui = H.ui.UI.createDefault(map, _this.defaultLayers);
+                var ui = H.ui.UI.createDefault(map, _this.defaultLayers, language);
+                disableMapSettings && ui.removeControl('mapsettings');
                 _this.setState({
                     behavior: behavior,
                     ui: ui
                 });
+                onMapAvailable(map, ui);
             }
             if (trafficLayer) {
                 if (useSatellite)
@@ -136,7 +141,6 @@ var HEREMap = /** @class */ (function (_super) {
             window.addEventListener("resize", _this.debouncedResizeMap);
             // attach the map object to the component"s state
             _this.setState({ map: map, markersGroup: markersGroup, routesGroup: routesGroup });
-            onMapAvailable(map);
         });
     };
     HEREMap.prototype.componentWillUnmount = function () {

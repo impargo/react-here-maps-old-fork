@@ -14,7 +14,9 @@ export interface HEREMapProps extends H.Map.Options {
     trafficLayer?: boolean;
     incidentsLayer?: boolean;
     useSatellite?: boolean;
-    onMapAvailable?: (callback: H.Map) => void;
+    disableMapSettings?: boolean;
+    onMapAvailable?: (map: H.Map, ui: H.ui.UI) => void;
+    language?: string;
 }
 export interface HEREMapState {
     map?: H.Map;
@@ -43,7 +45,7 @@ export declare class HEREMap extends React.Component<HEREMapProps, HEREMapState>
     defaultLayers: any;
     constructor(props: HEREMapProps, context: object);
     screenToGeo(x: number, y: number): H.geo.Point;
-    zoomOnMarkers(): void;
+    zoomOnMarkers(animate?: boolean): void;
     getChildContext(): {
         map: H.Map;
         markersGroup: H.map.Group;

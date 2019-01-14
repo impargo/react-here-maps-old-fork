@@ -5,10 +5,15 @@
 import * as React from "react";
 import * as PropTypes from "prop-types";
 
+export interface Coordinates {
+  lat: number;
+  lon: number;
+}
+
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap Marker component
 export interface RoutesProps {
-    points?: object[];
+    points?: Coordinates[];
     fillColor?: string;
     strokeColor?: string;
     lineWidth?: number;
@@ -62,7 +67,7 @@ export class Route extends React.Component<RoutesProps, object> {
     return null;
   }
 
-  private addRouteToMap(points:object[]) {
+  private addRouteToMap(points:Coordinates[]) {
     const {
       map,
       routesGroup,
@@ -73,7 +78,8 @@ export class Route extends React.Component<RoutesProps, object> {
       let routeLine: H.map.Polyline;
       route = new H.geo.LineString();
       points.forEach(point => {
-        route.pushPoint(point as H.geo.Point);
+        const { lat, lon } = point
+        route.pushPoint(new H.geo.Point(lat, lon));
       })
       routeLine = new H.map.Polyline(route, {
         style: { lineWidth, fillColor, strokeColor },

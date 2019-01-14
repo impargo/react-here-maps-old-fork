@@ -1,8 +1,12 @@
 /// <reference types="heremaps" />
 import * as React from "react";
 import * as PropTypes from "prop-types";
+export interface Coordinates {
+    lat: number;
+    lon: number;
+}
 export interface RoutesProps {
-    points?: object[];
+    points?: Coordinates[];
     fillColor?: string;
     strokeColor?: string;
     lineWidth?: number;

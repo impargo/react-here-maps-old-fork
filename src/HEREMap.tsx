@@ -25,7 +25,9 @@ export interface HEREMapProps extends H.Map.Options {
   trafficLayer? :boolean;
   incidentsLayer? :boolean;
   useSatellite? :boolean;
-  onMapAvailable? :(callback:H.Map) => void;
+  disableMapSettings?: boolean;
+  onMapAvailable? :(map:H.Map, ui: H.ui.UI) => void;
+  language? :string;
 }
 
 // declare an interface containing the potential state flags
@@ -81,10 +83,11 @@ export class HEREMap
     const { map } = this.state
     return map.screenToGeo(x,y)
   }
-  public zoomOnMarkers() {
+  public zoomOnMarkers(animate: boolean = true) {
     const { map, markersGroup } = this.state;
-    const viewBounds = markersGroup.getBounds();
-    if (viewBounds) map.setViewBounds(viewBounds);
+    if (!markersGroup) return
+    const viewBounds = markersGroup.getBounds() ;
+    if (viewBounds) map.setViewBounds(viewBounds, animate);
   }
   public getChildContext() {
     const {map, markersGroup, routesGroup} = this.state;
@@ -111,6 +114,8 @@ export class HEREMap
         useSatellite,
         trafficLayer,
         onMapAvailable,
+        disableMapSettings,
+        language,
       } = this.props;
 
       // get the platform to base the maps on
@@ -171,12 +176,13 @@ export class HEREMap
         const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
 
         // create the default UI for the map
-        const ui = H.ui.UI.createDefault(map, this.defaultLayers);
-
+        const ui = H.ui.UI.createDefault(map, this.defaultLayers, language);
+        disableMapSettings && ui.removeControl('mapsettings')
         this.setState({
           behavior,
           ui,
         });
+        onMapAvailable(map, ui);
       }
       if (trafficLayer) {
         if(useSatellite) map.setBaseLayer(this.defaultLayers.satellite.traffic)
@@ -192,7 +198,6 @@ export class HEREMap
 
       // attach the map object to the component"s state
       this.setState({ map, markersGroup, routesGroup });
-      onMapAvailable(map);
     });
   }
 
