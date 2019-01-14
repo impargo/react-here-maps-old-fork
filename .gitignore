@@ -163,10 +163,11 @@ jspm_packages
 .node_repl_history
 
 # Project Specific Excludes
-dist
 typings/globals
 typings/modules
 .idea/react-here-maps.iml
 build
+dist/
 test/**/*.js
 test/**/*.js.map
+package-lock.json

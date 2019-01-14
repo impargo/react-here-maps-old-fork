@@ -1,3 +1,10 @@
+### Unofficial fork
+
+#### Differences from original package
+- Support for React ^16.4
+- Height: 100% in parent to avoid 0px height bug
+- Routes: Adding routes support
+
 react-here-maps
 ==============
 
@@ -60,6 +67,7 @@ export default class Map extends Component {
                 <Marker {...center}>
                     <div className="circle-marker"></div>
                 </Marker>
+                <Route points={[{lat, lon}]} />
             </HEREMap>
         )
     }

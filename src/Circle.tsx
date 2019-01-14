@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as PropTypes from "prop-types";
 
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap Circle component
@@ -18,7 +19,7 @@ export interface CircleContext {
 export class Circle extends React.Component<CircleProps, object> {
   // define the context types that are passed down from a <HEREMap> instance
   public static contextTypes = {
-    map: React.PropTypes.object,
+    map: PropTypes.object,
   };
 
   public static defaultProps = {

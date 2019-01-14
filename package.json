@@ -1,6 +1,6 @@
 {
-  "name": "react-here-maps",
-  "version": "0.4.0",
+  "name": "@impargo/react-here-maps",
+  "version": "1.0.0",
   "description": "React.js HERE Maps component",
   "main": "dist/main.js",
   "scripts": {
@@ -11,12 +11,12 @@
     "coverage:remap": "remap-istanbul -i coverage/coverage.json -o coverage/coverage.json -t json -e node_modules,test",
     "coverage:report": "istanbul report",
     "coverage:post": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "prepublishOnly": "npm run pretest && gulp",
+    "prepublishOnly": "gulp",
     "lint": "tslint --config tslint.json --project tsconfig.json --type-check"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Josh-ES/react-here-maps.git"
+    "url": "git+https://github.com/antoineraoulimpargo/react-here-maps.git"
   },
   "keywords": [
     "React.js",
@@ -39,9 +39,9 @@
   "author": "Josh-ES",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Josh-ES/react-here-maps/issues"
+    "url": "https://github.com/antoineraoulimpargo/react-here-maps/issues"
   },
-  "homepage": "https://github.com/Josh-ES/react-here-maps#readme",
+  "homepage": "https://github.com/antoineraoulimpargo/react-here-maps#readme",
   "devDependencies": {
     "@types/bluebird": "^3.5.8",
     "@types/chai": "^4.0.1",
@@ -54,6 +54,7 @@
     "@types/lodash": "^4.14.68",
     "@types/mocha": "^2.2.41",
     "@types/node": "^8.0.10",
+    "@types/prop-types": "^15.5.8",
     "@types/react": "^15.0.36",
     "@types/react-dom": "^15.5.1",
     "@types/react-scroll": "^1.5.1",
@@ -113,7 +114,8 @@
   "dependencies": {
     "bluebird": "^3.4.1",
     "core-js": "^2.4.1",
-    "lodash": "^4.15.0"
+    "lodash": "^4.15.0",
+    "prop-types": "^15.6.2"
   },
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0",
