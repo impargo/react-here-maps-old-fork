@@ -135,7 +135,7 @@ export class HEREMap
         getURL: function( col, row, level )
         {
           return ["https://",
-          "1.base.maps.cit.api.here.com/maptile/2.1/truckonlytile/newest/normal.day/",
+          "1.base.maps.cit.api.here.com/maptile/2.1/truckonlytile/newest/normal.night/",
           level,
           "/",
           col,
