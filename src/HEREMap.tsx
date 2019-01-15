@@ -67,6 +67,7 @@ export class HEREMap
 
   private debouncedResizeMap: any;
   public truckOverlayLayer: H.map.layer.TileLayer;
+  public customStyleMap: H.map.layer.TileLayer;
   public defaultLayers: any;
   constructor(props: HEREMapProps, context: object) {
     super(props, context);
@@ -153,6 +154,31 @@ export class HEREMap
       const truckOverlayProvider = new H.map.provider.ImageTileProvider(truckOverlayLayerOptions);
     
       this.truckOverlayLayer = new H.map.layer.TileLayer(truckOverlayProvider);
+      const customStyleMapOptions = {
+        label: 'Custom style Overlay',
+        descr: "",
+        min: 8,
+        max: 20,
+        getURL: function( col, row, level )
+        {
+          return ["https://2.base.maps.api.here.com/maptile/2.1/maptile/newest/normal.day/",
+          level,
+          "/",
+          col,
+          "/",
+          row,
+          "/256/png8",
+          "?style=dreamworks",
+          "&app_code=",
+          appCode,
+          "&app_id=",
+          appId
+          ].join("");
+        }
+      } as H.map.provider.ImageTileProvider.Options; 
+      const customStyleMapProvider = new H.map.provider.ImageTileProvider(customStyleMapOptions);
+    
+      this.customStyleMap = new H.map.layer.TileLayer(customStyleMapProvider);
       const hereMapEl = ReactDOM.findDOMNode(this);
       const baseLayer = this.defaultLayers.normal.map;
       const map = new H.Map(
@@ -227,6 +253,7 @@ export class HEREMap
     } else {
       map.removeLayer(this.defaultLayers.incidents)
     }
+    map.addLayer(this.customStyleMap)
   }
 
   public render() {
