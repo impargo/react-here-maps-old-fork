@@ -67,6 +67,7 @@ export class HEREMap
 
   private debouncedResizeMap: any;
   public truckOverlayLayer: H.map.layer.TileLayer;
+  public trafficTilesLayer: H.map.layer.TileLayer;
   public defaultLayers: any;
   constructor(props: HEREMapProps, context: object) {
     super(props, context);
@@ -153,6 +154,31 @@ export class HEREMap
       const truckOverlayProvider = new H.map.provider.ImageTileProvider(truckOverlayLayerOptions);
     
       this.truckOverlayLayer = new H.map.layer.TileLayer(truckOverlayProvider);
+      const trafficTilesLayer = {
+        label: 'Tile Info Overlay',
+        descr: "",
+        min: 8,
+        max: 20,
+        getURL: function( col, row, level )
+        {
+          return ["https://",
+          "tiles.traffic.api.here.com/traffic/6.0/tiles/",
+          level,
+          "/",
+          col,
+          "/",
+          row,
+          "/256/png8",
+          "?app_code=",
+          appCode,
+          "&app_id=",
+          appId
+          ].join("");
+        }
+      } as H.map.provider.ImageTileProvider.Options; 
+      const trafficTilesProvider = new H.map.provider.ImageTileProvider(trafficTilesLayer);
+    
+      this.trafficTilesLayer = new H.map.layer.TileLayer(trafficTilesProvider);
       const hereMapEl = ReactDOM.findDOMNode(this);
       const baseLayer = this.defaultLayers.normal.map;
       const map = new H.Map(
@@ -165,7 +191,7 @@ export class HEREMap
         },
       );
       const markersGroup = new H.map.Group();
-      const routesGroup = new H.map.Group();
+      const routesGroup = new H.map.Group({zIndex: 1});
       map.addObject(markersGroup)
       map.addObject(routesGroup)
       if(this.props.transportData) map.addLayer(this.truckOverlayLayer)
@@ -184,15 +210,13 @@ export class HEREMap
           ui,
         });
       }
+      if(useSatellite) map.setBaseLayer(this.defaultLayers.satellite.map)
+      else map.setBaseLayer(this.defaultLayers.normal.map)
       if (trafficLayer) {
-        if(useSatellite) map.setBaseLayer(this.defaultLayers.satellite.traffic)
-        else map.setBaseLayer(this.defaultLayers.normal.traffic)
-       }
-       else {
-         if(useSatellite) map.setBaseLayer(this.defaultLayers.satellite.map)
-         else map.setBaseLayer(this.defaultLayers.normal.map)
-       }
-      
+        map.addLayer(this.trafficTilesLayer)
+      } else {
+        map.removeLayer(this.trafficTilesLayer)
+      }
       // make the map resize when the window gets resized
       window.addEventListener("resize", this.debouncedResizeMap);
 
@@ -209,14 +233,8 @@ export class HEREMap
   public componentWillReceiveProps(nextProps: HEREMapProps) {
     const map = this.getMap()
     if(!map) return
-    if (nextProps.trafficLayer) {
-     if(nextProps.useSatellite) map.setBaseLayer(this.defaultLayers.satellite.traffic)
-     else map.setBaseLayer(this.defaultLayers.normal.traffic)
-    }
-    else {
-      if(nextProps.useSatellite) map.setBaseLayer(this.defaultLayers.satellite.map)
-      else map.setBaseLayer(this.defaultLayers.normal.map)
-    }
+    if(nextProps.useSatellite) map.setBaseLayer(this.defaultLayers.satellite.map)
+    else map.setBaseLayer(this.defaultLayers.normal.map)
     if(nextProps.transportData) {
       map.addLayer(this.truckOverlayLayer)
     } else {
@@ -226,6 +244,11 @@ export class HEREMap
       map.addLayer(this.defaultLayers.incidents)
     } else {
       map.removeLayer(this.defaultLayers.incidents)
+    }
+    if (nextProps.trafficLayer) {
+      map.addLayer(this.trafficTilesLayer, 10)
+    } else {
+      map.removeLayer(this.trafficTilesLayer)
     }
   }
 

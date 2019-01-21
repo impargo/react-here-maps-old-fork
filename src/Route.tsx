@@ -39,7 +39,7 @@ export class Route extends React.Component<RoutesProps, object> {
 
   private route: H.geo.LineString;
   private routeLine: H.map.Polyline;
-  static defaultProps = { lineWidth: 4, fillColor: 'blue', strokeColor: 'blue' }
+  static defaultProps = { lineWidth: 18, fillColor: 'blue', strokeColor: 'blue' }
   public componentWillReceiveProps(nextProps: RoutesProps) {
     const { map, routesGroup } = this.context;
     // it's cheaper to remove and add instead of deep comparision
