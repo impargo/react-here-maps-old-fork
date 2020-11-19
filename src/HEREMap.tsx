@@ -68,7 +68,13 @@ export class HEREMap
   public state: HEREMapState = {
     markersGroups: {},
   };
-  public defaultLayers: H.service.DefaultLayers;
+
+  // Base layers:
+  public emptyBaseLayer: H.map.layer.TileLayer;
+  public truckBaseLayer: H.map.layer.TileLayer;
+  public satelliteBaseLayer: H.map.layer.TileLayer;
+
+  // Additional layers:
   public trafficLayer: H.map.layer.TileLayer;
 
   private unmounted: boolean;
@@ -163,7 +169,6 @@ export class HEREMap
         onMapAvailable,
         disableMapSettings,
         language,
-        congestion,
         apiKey,
       } = this.props;
 
@@ -172,7 +177,7 @@ export class HEREMap
         apikey: apiKey,
         useHTTPS: secure === true,
       });
-      this.defaultLayers = platform.createDefaultLayers({
+      const defaultLayers: H.service.DefaultLayers = platform.createDefaultLayers({
         lg,
         ppi: hidpi ? 320 : 72,
       });
@@ -181,16 +186,19 @@ export class HEREMap
       // TODO(jlabeit): Fix HERE types.
       // @ts-ignore
       const trafficProvider = new H.service.traffic.flow.Provider(trafficService);
+
+      this.emptyBaseLayer = defaultLayers.vector.normal.map;
+      // TODO(jlabeit): Fix HERE types.
+      // @ts-ignore
+      this.truckBaseLayer = defaultLayers.vector.normal.truck as H.map.layer.TileLayer;
       this.trafficLayer = new H.map.layer.TileLayer(trafficProvider);
+      this.satelliteBaseLayer = defaultLayers.raster.satellite.base;
 
       const hereMapEl = ReactDOM.findDOMNode(this) as Element;
 
-      // TODO(jlabeit): Fix HERE types.
-      // @ts-ignore
-      const baseLayer = this.defaultLayers.vector.normal.truck as H.map.layer.TileLayer
       const map = new H.Map(
         hereMapEl.querySelector(".map-container"),
-        baseLayer, {
+        this.truckBaseLayer, {
         center,
         pixelRatio: hidpi ? 2 : 1,
         zoom,
@@ -205,7 +213,7 @@ export class HEREMap
         const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
 
         // create the default UI for the map
-        ui = H.ui.UI.createDefault(map, this.defaultLayers, language);
+        ui = H.ui.UI.createDefault(map, defaultLayers, language);
         if (disableMapSettings) {
           ui.removeControl("mapsettings");
         }
@@ -235,19 +243,18 @@ export class HEREMap
     const props = this.props;
     const map = this.getMap();
     if (!map) { return; }
-
+    if (props.transportData !== nextProps.transportData ||
+      props.useSatellite !== nextProps.useSatellite) {
+      const baseLayer = nextProps.useSatellite
+        ? this.satelliteBaseLayer
+        : (nextProps.transportData ? this.truckBaseLayer : this.emptyBaseLayer);
+      map.setBaseLayer(baseLayer);
+    }
     if (props.trafficLayer !== nextProps.trafficLayer) {
       if (nextProps.trafficLayer) {
         map.addLayer(this.trafficLayer);
       } else {
         map.removeLayer(this.trafficLayer);
-      }
-    }
-    if (props.useSatellite !== nextProps.useSatellite) {
-      if (nextProps.useSatellite) {
-        map.setBaseLayer(this.defaultLayers.raster.satellite.base);
-      } else {
-        map.setBaseLayer(this.defaultLayers.vector.normal.map);
       }
     }
   }
