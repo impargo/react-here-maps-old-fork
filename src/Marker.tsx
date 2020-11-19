@@ -165,7 +165,7 @@ export class Marker extends React.Component<MarkerProps, object> {
   }
 
   private setPosition(point: H.geo.IPoint): void {
-    this.marker.setPosition(point);
+    this.marker.setGeometry(point);
   }
 }
 

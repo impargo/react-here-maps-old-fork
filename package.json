@@ -47,7 +47,7 @@
     "@types/chai": "^4.0.1",
     "@types/core-js": "^0.9.42",
     "@types/enzyme": "^3.10.8",
-    "@types/heremaps": "^3.0.7",
+    "@types/heremaps": "^3.1.1",
     "@types/highlight.js": "^9.1.9",
     "@types/jquery": "^3.2.6",
     "@types/jsdom": "^11.0.1",

@@ -7,7 +7,7 @@ export interface ScriptMap {
 export function getScriptMap(secure?: boolean): ScriptMap {
   // store the versions of the HERE API
   const apiVersion = "v3";
-  const codeVersion = "3.0";
+  const codeVersion = "3.1";
 
   // get the relevant protocol for the HERE Maps API
   let protocol = "";

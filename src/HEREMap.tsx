@@ -13,8 +13,7 @@ import { Language } from "./utils/languages";
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap component
 export interface HEREMapProps extends H.Map.Options {
-  appId: string;
-  appCode: string;
+  apiKey: string;
   animateCenter?: boolean;
   animateZoom?: boolean;
   hidpi?: boolean;
@@ -71,7 +70,7 @@ export class HEREMap
   };
   public truckOverlayLayer: H.map.layer.TileLayer;
   public truckOverCongestionLayer: H.map.layer.TileLayer;
-  public defaultLayers: any;
+  public defaultLayers: H.service.DefaultLayers;
 
   private unmounted: boolean;
 
@@ -98,15 +97,24 @@ export class HEREMap
   public zoomOnMarkers(animate: boolean = true, group: string = "default") {
     const { map, markersGroups } = this.state;
     if (!markersGroups[group]) { return; }
-    const viewBounds = markersGroups[group].getBounds();
-    if (viewBounds) { map.setViewBounds(viewBounds, animate); }
+    const viewBounds = markersGroups[group].getBoundingBox();
+    if (viewBounds) {
+      map.getViewModel().setLookAtData({
+        bounds: viewBounds
+      }, animate);
+    }
   }
   public zoomOnMarkersSet(markersSet: H.map.DomMarker[], animate: boolean = true) {
     const { map } = this.state;
     const markersGroupSet = new H.map.Group();
     markersSet.map((m) => markersGroupSet.addObject(m));
-    const viewBounds = markersGroupSet.getBounds();
-    if (viewBounds) { map.setViewBounds(viewBounds, animate); }
+    const viewBounds = markersGroupSet.getBoundingBox();
+    if (viewBounds) {
+      map.getViewModel().setLookAtData({
+        bounds: viewBounds
+      }, animate);
+ 
+    }
   }
   public addToMarkerGroup(marker: H.map.Marker, group: string) {
     const { map, markersGroups } = this.state;
@@ -135,7 +143,7 @@ export class HEREMap
     return { map, addToMarkerGroup, removeFromMarkerGroup, routesGroup };
   }
   public getTruckLayerProvider(congestion: boolean): H.map.provider.ImageTileProvider.Options {
-    const { appCode, appId } = this.props;
+    const { apiKey } = this.props;
     return {
       max: 20,
       min: 8,
@@ -149,10 +157,8 @@ export class HEREMap
           row,
           "/256/png8",
           "?style=fleet",
-          "&app_code=",
-          appCode,
-          "&app_id=",
-          appId,
+          "&apiKey=",
+          apiKey,
           congestion ? "&congestion" : "",
         ].join("");
       },
@@ -171,8 +177,6 @@ export class HEREMap
       }
 
       const {
-        appId,
-        appCode,
         center,
         hidpi,
         interactive,
@@ -184,12 +188,12 @@ export class HEREMap
         disableMapSettings,
         language,
         congestion,
+        apiKey,
       } = this.props;
 
       // get the platform to base the maps on
       const platform = getPlatform({
-        app_code: appCode,
-        app_id: appId,
+        apikey: apiKey,
         useHTTPS: secure === true,
       });
       this.defaultLayers = platform.createDefaultLayers({
@@ -202,7 +206,7 @@ export class HEREMap
       this.truckOverlayLayer = new H.map.layer.TileLayer(truckOverlayProvider);
       this.truckOverCongestionLayer = new H.map.layer.TileLayer(truckOverlayCongestionProvider);
       const hereMapEl = ReactDOM.findDOMNode(this) as Element;
-      const baseLayer = this.defaultLayers.normal.map;
+      const baseLayer = this.defaultLayers.vector.normal.map;
       const map = new H.Map(
         hereMapEl.querySelector(".map-container"),
         baseLayer,
