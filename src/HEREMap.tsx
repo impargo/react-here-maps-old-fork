@@ -68,9 +68,8 @@ export class HEREMap
   public state: HEREMapState = {
     markersGroups: {},
   };
-  public truckOverlayLayer: H.map.layer.TileLayer;
-  public truckOverCongestionLayer: H.map.layer.TileLayer;
   public defaultLayers: H.service.DefaultLayers;
+  public trafficLayer: H.map.layer.TileLayer;
 
   private unmounted: boolean;
 
@@ -100,7 +99,7 @@ export class HEREMap
     const viewBounds = markersGroups[group].getBoundingBox();
     if (viewBounds) {
       map.getViewModel().setLookAtData({
-        bounds: viewBounds
+        bounds: viewBounds,
       }, animate);
     }
   }
@@ -111,9 +110,9 @@ export class HEREMap
     const viewBounds = markersGroupSet.getBoundingBox();
     if (viewBounds) {
       map.getViewModel().setLookAtData({
-        bounds: viewBounds
+        bounds: viewBounds,
       }, animate);
- 
+
     }
   }
   public addToMarkerGroup(marker: H.map.Marker, group: string) {
@@ -142,33 +141,12 @@ export class HEREMap
     const removeFromMarkerGroup = this.removeFromMarkerGroup;
     return { map, addToMarkerGroup, removeFromMarkerGroup, routesGroup };
   }
-  public getTruckLayerProvider(congestion: boolean): H.map.provider.ImageTileProvider.Options {
-    const { apiKey } = this.props;
-    return {
-      max: 20,
-      min: 8,
-      getURL(col, row, level) {
-        return ["https://",
-          "1.base.maps.cit.api.here.com/maptile/2.1/truckonlytile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?style=fleet",
-          "&apiKey=",
-          apiKey,
-          congestion ? "&congestion" : "",
-        ].join("");
-      },
-    };
-  }
   public componentDidMount() {
     const {
       secure,
     } = this.props;
     cache(getScriptMap(secure === true));
+    // TODO(jlabeit): Upgrade to 3.1.
     const stylesheetUrl = `${secure === true ? "https:" : ""}//js.api.here.com/v3/3.0/mapsjs-ui.css`;
     getLink(stylesheetUrl, "HERE Maps UI");
     onAllLoad(() => {
@@ -182,8 +160,6 @@ export class HEREMap
         interactive,
         zoom,
         lg,
-        useSatellite,
-        trafficLayer,
         onMapAvailable,
         disableMapSettings,
         language,
@@ -200,31 +176,27 @@ export class HEREMap
         lg,
         ppi: hidpi ? 320 : 72,
       });
-      const truckOverlayProvider = new H.map.provider.ImageTileProvider(this.getTruckLayerProvider(false));
-      const truckOverlayCongestionProvider = new H.map.provider.ImageTileProvider(this.getTruckLayerProvider(true));
 
-      this.truckOverlayLayer = new H.map.layer.TileLayer(truckOverlayProvider);
-      this.truckOverCongestionLayer = new H.map.layer.TileLayer(truckOverlayCongestionProvider);
+      const trafficService = platform.getTrafficService();
+      // TODO(jlabeit): Fix HERE types.
+      // @ts-ignore
+      const trafficProvider = new H.service.traffic.flow.Provider(trafficService);
+      this.trafficLayer = new H.map.layer.TileLayer(trafficProvider);
+
       const hereMapEl = ReactDOM.findDOMNode(this) as Element;
-      const baseLayer = this.defaultLayers.vector.normal.map;
+
+      // TODO(jlabeit): Fix HERE types.
+      // @ts-ignore
+      const baseLayer = this.defaultLayers.vector.normal.truck as H.map.layer.TileLayer
       const map = new H.Map(
         hereMapEl.querySelector(".map-container"),
-        baseLayer,
-        {
-          center,
-          pixelRatio: hidpi ? 2 : 1,
-          zoom,
-        },
-      );
+        baseLayer, {
+        center,
+        pixelRatio: hidpi ? 2 : 1,
+        zoom,
+      });
       const routesGroup = new H.map.Group();
       map.addObject(routesGroup);
-      if (this.props.transportData) {
-        if (congestion) {
-          map.addLayer(this.truckOverlayLayer);
-        } else {
-          map.addLayer(this.truckOverCongestionLayer);
-        }
-      }
       let ui: H.ui.UI;
       if (interactive !== false) {
         // make the map interactive
@@ -242,23 +214,8 @@ export class HEREMap
           ui,
         });
       }
-      if (trafficLayer) {
-        if (useSatellite) {
-          map.setBaseLayer(this.defaultLayers.satellite.traffic);
-        } else {
-          map.setBaseLayer(this.defaultLayers.normal.traffic);
-        }
-      } else {
-        if (useSatellite) {
-          map.setBaseLayer(this.defaultLayers.satellite.map);
-        } else {
-          map.setBaseLayer(this.defaultLayers.normal.map);
-        }
-      }
-
       // make the map resize when the window gets resized
       window.addEventListener("resize", this.debouncedResizeMap);
-
       // attach the map object to the component"s state
       this.setState({ map, routesGroup }, () => onMapAvailable(this.state));
     });
@@ -279,44 +236,18 @@ export class HEREMap
     const map = this.getMap();
     if (!map) { return; }
 
-    if (props.trafficLayer !== nextProps.trafficLayer ||
-      props.useSatellite !== nextProps.useSatellite) {
+    if (props.trafficLayer !== nextProps.trafficLayer) {
       if (nextProps.trafficLayer) {
-        if (nextProps.useSatellite) {
-          map.setBaseLayer(this.defaultLayers.satellite.traffic);
-        } else {
-          map.setBaseLayer(this.defaultLayers.normal.traffic);
-        }
+        map.addLayer(this.trafficLayer);
       } else {
-        if (nextProps.useSatellite) {
-          map.setBaseLayer(this.defaultLayers.satellite.map);
-        } else {
-          map.setBaseLayer(this.defaultLayers.normal.map);
-        }
+        map.removeLayer(this.trafficLayer);
       }
     }
-
-    if (props.transportData !== nextProps.transportData ||
-      props.congestion !== nextProps.congestion) {
-      if (nextProps.transportData) {
-        if (nextProps.congestion) {
-          map.removeLayer(this.truckOverlayLayer);
-          map.addLayer(this.truckOverCongestionLayer);
-        } else {
-          map.removeLayer(this.truckOverCongestionLayer);
-          map.addLayer(this.truckOverlayLayer);
-        }
+    if (props.useSatellite !== nextProps.useSatellite) {
+      if (nextProps.useSatellite) {
+        map.setBaseLayer(this.defaultLayers.raster.satellite.base);
       } else {
-        map.removeLayer(this.truckOverCongestionLayer);
-        map.removeLayer(this.truckOverlayLayer);
-      }
-    }
-
-    if (props.incidentsLayer !== nextProps.incidentsLayer) {
-      if (nextProps.incidentsLayer) {
-        map.addLayer(this.defaultLayers.incidents);
-      } else {
-        map.removeLayer(this.defaultLayers.incidents);
+        map.setBaseLayer(this.defaultLayers.vector.normal.map);
       }
     }
   }
