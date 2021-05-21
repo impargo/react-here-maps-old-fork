@@ -73,7 +73,7 @@ export class Route extends React.PureComponent<RoutesProps, object> {
   private addRouteToMap(props: RoutesProps) {
     const { routesGroup } = this.context;
     const { mapStyles, data, zIndex, points } = props;
-    if (routesGroup) {
+    if (routesGroup && points.length > 1) {
       let route: H.geo.LineString;
       let routeLine: H.map.Polyline;
       route = new H.geo.LineString();
