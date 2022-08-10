@@ -2,10 +2,9 @@
 // large numbers of markers of this type can be added to the map
 // very quickly and efficiently
 
-import * as PropTypes from "prop-types";
-import * as React from "react";
+import React, { useContext, useEffect, useRef, FC } from "react";
 import * as ReactDOMServer from "react-dom/server";
-import * as isEqual from "react-fast-compare";
+import { HEREMapContext, HEREMapContextType } from "./context";
 import getDomMarkerIcon from "./utils/get-dom-marker-icon";
 import getMarkerIcon from "./utils/get-marker-icon";
 
@@ -19,92 +18,20 @@ export interface MarkerProps extends H.map.Marker.Options, H.geo.IPoint {
   group?: string;
 }
 
-// declare an interface containing the potential context parameters
-export interface MarkerContext {
-  map: H.Map;
-  addToMarkerGroup: (marker: H.map.Marker, group: string) => void;
-  removeFromMarkerGroup: (marker: H.map.Marker, group: string) => void;
-}
+export const Marker: FC<MarkerProps> = ({
+  children,
+  group = "default",
+  bitmap,
+  data,
+  draggable = false,
+  lat,
+  lng,
+}) => {
+  const { map, removeFromMarkerGroup, addToMarkerGroup } = useContext<HEREMapContextType>(HEREMapContext);
 
-// export the Marker React component from this module
-export class Marker extends React.Component<MarkerProps, object> {
-  // define the context types that are passed down from a <HEREMap> instance
-  public static contextTypes = {
-    addToMarkerGroup: PropTypes.func,
-    map: PropTypes.object,
-    removeFromMarkerGroup: PropTypes.func,
-  };
-  public static defaultProps = { draggable: false, group: "default" };
-  public context: MarkerContext;
+  const markerRef = useRef<H.map.DomMarker | H.map.Marker | null>(null);
 
-  private marker: H.map.DomMarker | H.map.Marker;
-  public constructor(props: MarkerProps, context: MarkerContext) {
-    super(props, context);
-  }
-  // change the position automatically if the props get changed
-  public componentWillReceiveProps(nextProps: MarkerProps) {
-    if (!this.context.map) {
-      return;
-    }
-    // Rerender the marker if child props change
-    const nextChildProps = nextProps.children && nextProps.children.props;
-    const childProps = this.props.children && this.props.children.props;
-    if (nextProps.group !== this.props.group) {
-      const { removeFromMarkerGroup } = this.context;
-      if (this.marker) {
-        removeFromMarkerGroup(this.marker, this.props.group);
-      }
-      this.marker = this.renderChildren(nextProps);
-      return;
-    }
-    if (!this.marker) {
-      return;
-    }
-    if ((nextChildProps && !isEqual(nextChildProps, childProps))) {
-      const html = ReactDOMServer.renderToStaticMarkup((
-        <div className="dom-marker">
-          {nextProps.children}
-        </div>
-      ));
-      this.marker.setIcon(getDomMarkerIcon(html));
-    }
-    if (!nextChildProps && !childProps && (nextProps.bitmap)) {
-      this.marker.setIcon(getMarkerIcon(nextProps.bitmap));
-    }
-    if (nextProps.data !== this.props.data) {
-      this.marker.setData(nextProps.data);
-    }
-    if (nextProps.draggable !== this.props.draggable) {
-      this.marker.draggable = true;
-    }
-    if (nextProps.lat !== this.props.lat || nextProps.lng !== this.props.lng) {
-      this.setPosition({
-        lat: nextProps.lat,
-        lng: nextProps.lng,
-      });
-    }
-  }
-
-  // remove the marker on unmount of the component
-  public componentWillUnmount() {
-    const { removeFromMarkerGroup } = this.context;
-
-    if (this.marker) {
-      removeFromMarkerGroup(this.marker, this.props.group);
-    }
-  }
-
-  public render(): JSX.Element {
-    const { map } = this.context;
-    if (map && !this.marker) {
-      this.addMarkerToMap();
-    }
-
-    return null;
-  }
-
-  private renderChildren(props: MarkerProps) {
-    const { addToMarkerGroup, map } = this.context;
+  const renderChildren = () => {
     if (!map) {
       throw new Error("Map has to be loaded before performing this action");
     }
@@ -113,7 +40,7 @@ export class Marker extends React.Component<MarkerProps, object> {
     // code to an html string
     const html = ReactDOMServer.renderToStaticMarkup((
       <div className="dom-marker">
-        {props.children}
+        {children}
       </div>
     ));
 
@@ -122,53 +49,78 @@ export class Marker extends React.Component<MarkerProps, object> {
 
     // then create a dom marker instance and attach it to the map,
     // provided via context
-    const { lat, lng } = props;
     const marker = new H.map.DomMarker({ lat, lng }, { icon });
-    marker.draggable = props.draggable;
-    marker.setData(props.data);
-    addToMarkerGroup(marker, props.group);
+    (marker as any).draggable = draggable;
+    marker.setData(data);
+    addToMarkerGroup(marker, group);
     return marker;
-  }
+  };
 
-  private addMarkerToMap() {
-    const { addToMarkerGroup, map } = this.context;
+  const addMarkerToMap = () => {
     if (!map) {
       throw new Error("Map has to be loaded before performing this action");
     }
 
-    const {
-      children,
-      bitmap,
-      lat,
-      lng,
-      group,
-    } = this.props;
-
-    let marker: H.map.DomMarker | H.map.Marker;
     if (React.Children.count(children) > 0) {
-      marker = this.renderChildren(this.props);
+      markerRef.current = renderChildren();
     } else if (bitmap) {
       // if we have an image url and no react children, create a
       // regular icon instance
       const icon = getMarkerIcon(bitmap);
       // then create a normal marker instance and attach it to the map
-      marker = new H.map.Marker({ lat, lng }, { icon });
-      marker.setData(this.props.data);
-      addToMarkerGroup(marker, group);
+      markerRef.current = new H.map.Marker({ lat, lng }, { icon });
+      markerRef.current.setData(data);
+      addToMarkerGroup(markerRef.current, group);
     } else {
       // create a default marker at the provided location
-      marker = new H.map.Marker({ lat, lng });
-      marker.setData(this.props.data);
-      addToMarkerGroup(marker, group);
+      markerRef.current = new H.map.Marker({ lat, lng });
+      markerRef.current.setData(data);
+      addToMarkerGroup(markerRef.current, group);
     }
+  };
 
-    this.marker = marker;
-  }
+  useEffect(() => {
+    addMarkerToMap();
+    return () => {
+      removeFromMarkerGroup(markerRef.current, group);
+    };
+  }, [group]);
 
-  private setPosition(point: H.geo.IPoint): void {
-    this.marker.setPosition(point);
-  }
-}
+  useEffect(() => {
+    if (markerRef.current) {
+      (markerRef.current as any).draggable = draggable;
+    }
+  }, [draggable]);
 
-// make the Marker component the default export
+  useEffect(() => {
+    (markerRef.current as any)?.setPosition({
+      lat,
+      lng,
+    });
+  }, [lat, lng]);
+
+  useEffect(() => {
+    markerRef.current?.setData(data);
+  }, [data]);
+
+  useEffect(() => {
+    if (bitmap && markerRef.current) {
+      markerRef.current.setIcon(getMarkerIcon(bitmap));
+    }
+  }, [bitmap]);
+
+  useEffect(() => {
+    if (markerRef.current) {
+      const html = ReactDOMServer.renderToStaticMarkup((
+        <div className="dom-marker">
+          {children}
+        </div>
+      ));
+      markerRef.current.setIcon(getDomMarkerIcon(html));
+    }
+  }, [children.props]);
+
+  return null;
+};
+
 export default Marker;

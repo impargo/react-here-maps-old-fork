@@ -1,5 +1,5 @@
 // import from npm
-import * as loadjs from "loadjs";
+import loadjs from "loadjs";
 import getScriptMap from "./get-script-map";
 
 /**
