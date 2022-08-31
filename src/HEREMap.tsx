@@ -78,7 +78,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
 },                                                           ref) => {
   const uniqueIdRef = useRef<string>(uniqueId());
 
-  const [map, setMap] = useState(null);
+  const [map, setMap] = useState<H.Map>(null);
   const [routesGroup, setRoutesGroup] = useState(null);
 
   const markersGroupsRef = useRef<Record<string, H.map.Group>>({});
@@ -86,9 +86,9 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   const unmountedRef = useRef(false);
 
   const defaultLayersRef = useRef(null);
-  const trafficOverlayLayerRef = useRef(null);
-  const truckOverlayLayerRef = useRef(null);
-  const truckCongestionLayerRef = useRef(null);
+  const trafficOverlayLayerRef = useRef<H.map.layer.TileLayer>(null);
+  const truckOverlayLayerRef = useRef<H.map.layer.TileLayer>(null);
+  const truckCongestionLayerRef = useRef<H.map.layer.TileLayer>(null);
 
   const screenToGeo = (x: number, y: number): H.geo.Point => {
     return map.screenToGeo(x, y);
@@ -188,12 +188,6 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   };
 
   useEffect(() => {
-    return () => {
-      unmountedRef.current = true;
-    };
-  }, []);
-
-  useEffect(() => {
     loadScripts(secure).then(() => {
       if (unmountedRef.current) {
         return;
@@ -264,6 +258,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     }).catch(onScriptLoadError);
 
     return () => {
+      unmountedRef.current = true;
       map?.dispose();
     };
   }, []);
