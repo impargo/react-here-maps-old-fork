@@ -1,4 +1,4 @@
-let platform: any;
+let platform: H.service.Platform;
 
 // return the current platform if there is one,
 // otherwise open up a new platform

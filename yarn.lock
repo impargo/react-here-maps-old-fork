@@ -43,10 +43,10 @@
     "@types/cheerio" "*"
     "@types/react" "*"
 
-"@types/heremaps@3.0.7":
-  version "3.0.7"
-  resolved "https://registry.yarnpkg.com/@types/heremaps/-/heremaps-3.0.7.tgz#d67c239e529db7cf65f3ce5bb3018c6ba1bdf0d0"
-  integrity sha512-AgyKCL4W//rtwJc+RLx3IjVdJ/puuJheh1EC07LgUWwM2XfV6HPM542ZR2gvSBJgaf7RGd+OAqvSd2MPAIyuvQ==
+"@types/heremaps@^3.1.5":
+  version "3.1.5"
+  resolved "https://registry.yarnpkg.com/@types/heremaps/-/heremaps-3.1.5.tgz#fa0eca4a923d00b0092517e7c1745649fb8b50e3"
+  integrity sha512-I9hLvguxz4+waIoJajJFravPNOk1tiRf4LylBLk7hnQXjX/qVJn5ZTBLskAGjB047VyTKPE7Eb/yO43Ssjok/g==
 
 "@types/highlight.js@^9.1.9":
   version "9.12.4"

@@ -46,7 +46,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.1",
     "@types/enzyme": "^3.10.8",
-    "@types/heremaps": "3.0.7",
+    "@types/heremaps": "^3.1.5",
     "@types/highlight.js": "^9.1.9",
     "@types/jquery": "^3.2.6",
     "@types/loadjs": "^4.0.0",

@@ -11,9 +11,9 @@ export const Icons = new Map<string, H.map.Icon>();
  * @param bitmap {string} - The location of the bitmap to be used as an icon
  * Note: this can cause a memleak if used with dynamically generated bitmaps.
  */
-export default function getMarkerIcon(bitmap: string): H.map.Icon {
+export default function getMarkerIcon(bitmap: string, anchor?: H.math.IPoint): H.map.Icon {
   if (!Icons.has(bitmap)) {
-    const icon = new H.map.Icon(bitmap);
+    const icon = new H.map.Icon(bitmap, anchor ? { anchor, crossOrigin: false } : undefined);
     Icons.set(bitmap, icon);
   }
 
