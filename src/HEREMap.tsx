@@ -91,7 +91,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   const truckOverlayLayerRef = useRef<H.map.layer.TileLayer>(null);
   const truckCongestionLayerRef = useRef<H.map.layer.TileLayer>(null);
 
-  const usedMapTiles = useVectorTiles
+  const usedMapTiles = (useVectorTiles || trafficLayer)
     ? defaultLayersRef.current?.vector.normal
     : defaultLayersRef.current?.raster.normal;
 
@@ -177,6 +177,25 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
       },
     };
   };
+  const getTrafficOverlayProvider = (): H.map.provider.ImageTileProvider.Options => {
+    return {
+      getURL(col, row, level) {
+        return ["https://",
+          "1.traffic.maps.ls.hereapi.com/maptile/2.1/flowtile/newest/normal.day/",
+          level,
+          "/",
+          col,
+          "/",
+          row,
+          "/256/png8",
+          "?apiKey=",
+          apiKey,
+          "&=ppi",
+          hidpi ? "320" : "72",
+        ].join("");
+      },
+    };
+  };
   useEffect(() => {
     loadScripts(secure).then(() => {
       if (unmountedRef.current) {
@@ -194,14 +213,11 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
       });
       const truckOverlayProvider = new H.map.provider.ImageTileProvider(getTruckLayerProvider(false));
       const truckOverlayCongestionProvider = new H.map.provider.ImageTileProvider(getTruckLayerProvider(true));
+      const trafficOverlayProvider = new H.map.provider.ImageTileProvider(getTrafficOverlayProvider());
 
       truckOverlayLayerRef.current = new H.map.layer.TileLayer(truckOverlayProvider);
       truckCongestionLayerRef.current = new H.map.layer.TileLayer(truckOverlayCongestionProvider);
-
-      const service = platform.getTrafficService();
-      // @ts-ignore
-      const provider = new H.service.traffic.flow.Provider(service);
-      trafficOverlayLayerRef.current = new H.map.layer.TileLayer(provider);
+      trafficOverlayLayerRef.current = new H.map.layer.TileLayer(trafficOverlayProvider);
 
       const hereMapEl = document.querySelector(`#map-container-${uniqueIdRef.current}`);
       const baseLayer = useVectorTiles
@@ -297,8 +313,18 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   useEffect(() => {
     if (map) {
       if (trafficLayer) {
+        // Adding the vector traffic layer is not strictly necessary,
+        // however it's helpful because it changes the color for roads
+        // and highways to white which makes the traffic data more visible.
+        map.addLayer(defaultLayersRef.current.vector.normal.traffic);
+        // Ideally, we wouldn't need to add an additional layer here and
+        // the vector traffic layer added above would be enough, however
+        // the vector traffic layer is only visible on a high zoom level,
+        // and if the zoom level is changed using setMin, then performance
+        // issues appear.
         map.addLayer(trafficOverlayLayerRef.current);
       } else {
+        map.removeLayer(defaultLayersRef.current.vector.normal.traffic);
         map.removeLayer(trafficOverlayLayerRef.current);
       }
     }
