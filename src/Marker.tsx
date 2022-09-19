@@ -89,7 +89,12 @@ export const Marker: FC<MarkerProps> = ({
       // regular icon instance
       const icon = getMarkerIcon(bitmap, anchor);
       // then create a normal marker instance and attach it to the map
-      newMarker = new H.map.Marker({ lat, lng }, { icon, ...options });
+      newMarker = new H.map.Marker({ lat, lng }, {
+        icon,
+        // @ts-ignore
+        volatility: draggable,
+        ...options,
+      });
     } else {
       // create a default marker at the provided location
       newMarker = new H.map.Marker({ lat, lng });
@@ -174,6 +179,8 @@ export const Marker: FC<MarkerProps> = ({
   useEffect(() => {
     if (marker) {
       marker.draggable = draggable;
+      // @ts-ignore
+      marker.setVolatility(draggable);
     }
   }, [marker, draggable]);
 
