@@ -24,9 +24,17 @@ export function getScriptMap(secure?: boolean): ScriptMap {
   const coreScript: string =
     `${baseUrl}/mapsjs-core.js`;
 
+  // core legacy code
+  const coreLegacyScript: string =
+    `${baseUrl}/mapsjs-core-legacy.js`;
+
   // service code
   const serviceScript: string =
     `${baseUrl}/mapsjs-service.js`;
+
+  // service legacy code
+  const serviceLegacyScript: string =
+    `${baseUrl}/mapsjs-service-legacy.js`;
 
   // default ui code
   const uiScript: string =
@@ -47,8 +55,10 @@ export function getScriptMap(secure?: boolean): ScriptMap {
   // return an array with all script names within
   return {
     clusteringScript,
+    coreLegacyScript,
     coreScript,
     mapEventsScript,
+    serviceLegacyScript,
     serviceScript,
     uiCss,
     uiScript,

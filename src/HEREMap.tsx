@@ -197,7 +197,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     };
   };
   useEffect(() => {
-    loadScripts(secure).then(() => {
+    loadScripts(secure, !useVectorTiles).then(() => {
       if (unmountedRef.current) {
         return;
       }
@@ -228,6 +228,8 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
         baseLayer,
         {
           center,
+          // @ts-ignore
+          engineType: useVectorTiles ? undefined : H.map.render.RenderEngine.EngineType.P2D,
           pixelRatio: hidpi ? 2 : (window.devicePixelRatio || 1),
           zoom,
         },

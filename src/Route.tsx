@@ -19,6 +19,11 @@ export interface RoutesProps {
   data?: object;
   zIndex?: number;
   style?: object;
+  /**
+   * This is only supported when using the legacy P2D engine (when not using vector tiles).
+   * When using vector tiles and/or the new engine, use lineDash, lineHeadCap, and lineTailCap instead.
+   */
+  arrows?: object;
   onPointerMove?: (evt: H.mapevents.Event) => void;
   onPointerLeave?: (evt: H.mapevents.Event) => void;
   onPointerEnter?: (evt: H.mapevents.Event) => void;
@@ -33,6 +38,7 @@ export interface RoutesContext {
 
 export const Route: FC<RoutesProps> = ({
   style = defaultMapStyles,
+  arrows,
   data,
   zIndex,
   points,
@@ -52,7 +58,7 @@ export const Route: FC<RoutesProps> = ({
       const { lat, lon } = point;
       route.pushPoint(new H.geo.Point(lat, lon));
     });
-    routeLine = new H.map.Polyline(route, { style, zIndex, data });
+    routeLine = new H.map.Polyline(route, { style, arrows, zIndex, data });
     return routeLine;
   };
 
