@@ -1,5 +1,6 @@
-import { useContext, useEffect, useState, FC } from "react";
+import { useContext, useEffect, useMemo, useState, FC } from "react";
 import { HEREMapContext, HEREMapContextType } from "./context";
+import { useEventHandlers, EventHandlers } from "./useEventHandlers";
 
 export interface Coordinates {
   lat: number;
@@ -14,7 +15,7 @@ const defaultMapStyles: object = {
 
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap Marker component
-export interface RoutesProps {
+export interface RoutesProps extends EventHandlers {
   points?: Coordinates[];
   data?: object;
   zIndex?: number;
@@ -24,10 +25,7 @@ export interface RoutesProps {
    * When using vector tiles and/or the new engine, use lineDash, lineHeadCap, and lineTailCap instead.
    */
   arrows?: object;
-  onPointerMove?: (evt: H.mapevents.Event) => void;
-  onPointerLeave?: (evt: H.mapevents.Event) => void;
-  onPointerEnter?: (evt: H.mapevents.Event) => void;
-  onTap?: (evt: H.mapevents.Event) => void;
+  draggable?: boolean;
 }
 
 // declare an interface containing the potential context parameters
@@ -45,58 +43,45 @@ export const Route: FC<RoutesProps> = ({
   onPointerMove,
   onPointerLeave,
   onPointerEnter,
+  onDrag,
+  onDragEnd,
+  onDragStart,
   onTap,
+  draggable,
 }) => {
   const { routesGroup } = useContext<HEREMapContextType>(HEREMapContext);
   const [polyline, setPolyline] = useState<H.map.Polyline>(null);
 
-  const createPolyline = () => {
-    let route: H.geo.LineString;
-    let routeLine: H.map.Polyline;
-    route = new H.geo.LineString();
+  const line = useMemo(() => {
+    const route = new H.geo.LineString();
     points.forEach((point) => {
       const { lat, lon } = point;
       route.pushPoint(new H.geo.Point(lat, lon));
     });
-    routeLine = new H.map.Polyline(route, { style, arrows, zIndex, data });
-    return routeLine;
-  };
+    return route;
+  }, [points]);
+
+  useEventHandlers(polyline, {
+    onDrag,
+    onDragEnd,
+    onDragStart,
+    onPointerEnter,
+    onPointerLeave,
+    onPointerMove,
+    onTap,
+  });
 
   useEffect(() => {
-    if (polyline && onTap) {
-      polyline.addEventListener("tap", onTap as any);
-      return () => {
-        polyline.removeEventListener("tap", onTap as any);
-      };
+    if (polyline && typeof draggable === "boolean") {
+      // @ts-ignore
+      polyline.draggable = draggable;
     }
-  }, [polyline, onTap]);
+  }, [polyline, draggable]);
 
   useEffect(() => {
-    if (polyline && onPointerLeave) {
-      polyline.addEventListener("pointerleave", onPointerLeave as any);
-      return () => {
-        polyline.removeEventListener("pointerleave", onPointerLeave as any);
-      };
-    }
-  }, [polyline, onPointerLeave]);
+    polyline?.setGeometry(line);
 
-  useEffect(() => {
-    if (polyline && onPointerMove) {
-      polyline.addEventListener("pointermove", onPointerMove as any);
-      return () => {
-        polyline.removeEventListener("pointermove", onPointerMove as any);
-      };
-    }
-  }, [polyline, onPointerMove]);
-
-  useEffect(() => {
-    if (polyline && onPointerEnter) {
-      polyline.addEventListener("pointerenter", onPointerEnter as any);
-      return () => {
-        polyline.removeEventListener("pointerenter", onPointerEnter as any);
-      };
-    }
-  }, [polyline, onPointerEnter]);
+  }, [line]);
 
   useEffect(() => {
     polyline?.setData(data);
@@ -111,15 +96,15 @@ export const Route: FC<RoutesProps> = ({
   }, [polyline, style]);
 
   useEffect(() => {
-    if (routesGroup && points.length > 1) {
-      const routeLine = createPolyline();
+    if (routesGroup) {
+      const routeLine = new H.map.Polyline(line, { style, arrows, zIndex, data });
       routesGroup.addObject(routeLine);
       setPolyline(routeLine);
       return () => {
         routesGroup.removeObject(routeLine);
       };
     }
-  }, [points, routesGroup]);
+  }, [routesGroup]);
 
   return null;
 };

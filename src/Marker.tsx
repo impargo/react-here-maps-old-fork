@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState, FC } from "react";
 import * as ReactDOMServer from "react-dom/server";
 import { HEREMapContext, HEREMapContextType } from "./context";
+import { useEventHandlers, EventHandlers } from "./useEventHandlers";
 import getDomMarkerIcon from "./utils/get-dom-marker-icon";
 import getMarkerIcon from "./utils/get-marker-icon";
 
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap Marker componengetMartkerIdt
-export interface MarkerProps extends H.map.Marker.Options {
+export interface MarkerProps extends H.map.Marker.Options, EventHandlers {
   lat: number;
   lng: number;
   /**
@@ -22,13 +23,6 @@ export interface MarkerProps extends H.map.Marker.Options {
   children?: React.ReactElement<any>;
   group?: string;
   anchor?: H.math.IPoint;
-  onPointerEnter?: (evt: H.mapevents.Event) => void;
-  onPointerMove?: (evt: H.mapevents.Event) => void;
-  onPointerLeave?: (evt: H.mapevents.Event) => void;
-  onTap?: (evt: H.mapevents.Event) => void;
-  onDragStart?: (evt: H.mapevents.Event) => void;
-  onDrag?: (evt: H.mapevents.Event) => void;
-  onDragEnd?: (evt: H.mapevents.Event) => void;
 }
 
 /**
@@ -106,68 +100,15 @@ export const Marker: FC<MarkerProps> = ({
     return newMarker;
   };
 
-  useEffect(() => {
-    if (marker && onTap) {
-      marker.addEventListener("tap", onTap as any);
-      return () => {
-        marker.removeEventListener("tap", onTap as any);
-      };
-    }
-  }, [marker, onTap]);
-
-  useEffect(() => {
-    if (marker && onPointerEnter) {
-      marker.addEventListener("pointerenter", onPointerEnter as any);
-      return () => {
-        marker.removeEventListener("pointerenter", onPointerEnter as any);
-      };
-    }
-  }, [marker, onPointerEnter]);
-
-  useEffect(() => {
-    if (marker && onPointerLeave) {
-      marker.addEventListener("pointerleave", onPointerLeave as any);
-      return () => {
-        marker.removeEventListener("pointerleave", onPointerLeave as any);
-      };
-    }
-  }, [marker, onPointerLeave]);
-
-  useEffect(() => {
-    if (marker && onPointerMove) {
-      marker.addEventListener("pointermove", onPointerMove as any);
-      return () => {
-        marker.removeEventListener("pointermove", onPointerMove as any);
-      };
-    }
-  }, [marker, onPointerMove]);
-
-  useEffect(() => {
-    if (marker && onDragStart) {
-      marker.addEventListener("dragstart", onDragStart as any);
-      return () => {
-        marker.removeEventListener("dragstart", onDragStart as any);
-      };
-    }
-  }, [marker, onDragStart]);
-
-  useEffect(() => {
-    if (marker && onDrag) {
-      marker.addEventListener("drag", onDrag as any);
-      return () => {
-        marker.removeEventListener("drag", onDrag as any);
-      };
-    }
-  }, [marker, onDrag]);
-
-  useEffect(() => {
-    if (marker && onDragEnd) {
-      marker.addEventListener("dragend", onDragEnd as any);
-      return () => {
-        marker.removeEventListener("dragend", onDragEnd as any);
-      };
-    }
-  }, [marker, onDragEnd]);
+  useEventHandlers(marker, {
+    onDrag,
+    onDragEnd,
+    onDragStart,
+    onPointerEnter,
+    onPointerLeave,
+    onPointerMove,
+    onTap,
+  });
 
   useEffect(() => {
     const addedMarker = addMarkerToMap();
