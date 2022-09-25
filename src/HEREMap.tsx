@@ -245,6 +245,9 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
       const behavior = interactive ? new H.mapevents.Behavior(new H.mapevents.MapEvents(newMap)) : undefined;
 
       if (behavior) {
+        // @ts-ignore
+        behavior.disable(H.mapevents.Behavior.Feature.FRACTIONAL_ZOOM);
+
         // create the default UI for the map
         ui = H.ui.UI.createDefault(newMap, defaultLayersRef.current, language);
         if (disableMapSettings) {
