@@ -300,7 +300,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
 
   useEffect(() => {
     if (map) {
-      const satelliteBaseLayer = defaultLayersRef.current.raster.satellite.base;
+      const satelliteBaseLayer = defaultLayersRef.current.raster.satellite.map;
       const emptyBaseLayer = usedMapTiles.map;
       const baseLayer = useSatellite
         ? satelliteBaseLayer
