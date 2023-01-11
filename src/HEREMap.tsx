@@ -172,7 +172,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
           enableCongestion ? "&congestion" : "",
           "&lg=",
           lg,
-          "&=ppi",
+          "&ppi=",
           hidpi ? "320" : "72",
         ].join("");
       },
@@ -191,7 +191,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
           "/256/png8",
           "?apiKey=",
           apiKey,
-          "&=ppi",
+          "&ppi=",
           hidpi ? "320" : "72",
         ].join("");
       },
@@ -210,7 +210,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
           "/256/png8",
           "?apiKey=",
           apiKey,
-          "&=ppi",
+          "&ppi=",
           hidpi ? "320" : "72",
         ].join("");
       },
