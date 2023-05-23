@@ -2,6 +2,8 @@ import { debounce, uniqueId } from "lodash";
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import { HEREMapContext } from "./context";
+import { useRasterLayers } from "./useRasterLayers";
+import { useVectorLayers } from "./useVectorLayers";
 import { loadScripts } from "./utils/cache";
 import getPlatform from "./utils/get-platform";
 import { Language } from "./utils/languages";
@@ -29,6 +31,10 @@ export interface HEREMapProps extends H.Map.Options {
    * Also known as environmental zones.
    */
   congestion?: boolean;
+  /**
+   * Note: this cannot be changed after the map is loaded.
+   * If you want to change it, you have to re-mount the map component.
+   */
   useVectorTiles?: boolean;
   onScriptLoadError?: (failedScripts: string[]) => void;
 }
@@ -84,17 +90,33 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
 
   const markersGroupsRef = useRef<Record<string, H.map.Group>>({});
 
-  const unmountedRef = useRef(false);
-
   const defaultLayersRef = useRef<H.service.DefaultLayers>(null);
-  const trafficOverlayLayerRef = useRef<H.map.layer.TileLayer>(null);
-  const trafficBaseLayerRef = useRef<H.map.layer.TileLayer>(null);
-  const truckOverlayLayerRef = useRef<H.map.layer.TileLayer>(null);
-  const truckCongestionLayerRef = useRef<H.map.layer.TileLayer>(null);
 
-  const usedMapTiles = useVectorTiles
-    ? defaultLayersRef.current?.vector.normal
-    : defaultLayersRef.current?.raster.normal;
+  useVectorLayers({
+    congestion,
+    defaultLayers: defaultLayersRef.current,
+    incidentsLayer,
+    map,
+    trafficLayer,
+    truckRestrictions,
+    useSatellite,
+    useVectorTiles,
+  });
+
+  useRasterLayers({
+    apiKey,
+    congestion,
+    defaultLayers: defaultLayersRef.current,
+    incidentsLayer,
+    lg,
+    map,
+    trafficLayer,
+    truckRestrictions,
+    useSatellite,
+    useVectorTiles,
+  });
+
+  const unmountedRef = useRef(false);
 
   const screenToGeo = (x: number, y: number): H.geo.Point => {
     return map.screenToGeo(x, y);
@@ -153,69 +175,6 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     };
   }, [map]);
 
-  const getTruckLayerProvider = (enableCongestion: boolean): H.map.provider.ImageTileProvider.Options => {
-    return {
-      max: 20,
-      min: 8,
-      getURL(col, row, level) {
-        return ["https://",
-          "1.base.maps.ls.hereapi.com/maptile/2.1/truckonlytile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?style=fleet",
-          "&apiKey=",
-          apiKey,
-          enableCongestion ? "&congestion" : "",
-          "&lg=",
-          lg,
-          "&ppi=",
-          hidpi ? "320" : "72",
-        ].join("");
-      },
-    };
-  };
-  const getTrafficOverlayProvider = (): H.map.provider.ImageTileProvider.Options => {
-    return {
-      getURL(col, row, level) {
-        return ["https://",
-          "1.traffic.maps.ls.hereapi.com/maptile/2.1/flowtile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?apiKey=",
-          apiKey,
-          "&ppi=",
-          hidpi ? "320" : "72",
-        ].join("");
-      },
-    };
-  };
-  const getTrafficBaseProvider = (): H.map.provider.ImageTileProvider.Options => {
-    return {
-      getURL(col, row, level) {
-        return ["https://",
-          "1.traffic.maps.ls.hereapi.com/maptile/2.1/traffictile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?apiKey=",
-          apiKey,
-          "&ppi=",
-          hidpi ? "320" : "72",
-        ].join("");
-      },
-    };
-  };
   useEffect(() => {
     loadScripts(secure, !useVectorTiles).then(() => {
       if (unmountedRef.current) {
@@ -231,15 +190,6 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
         lg,
         ppi: hidpi ? 320 : 72,
       });
-      const truckOverlayProvider = new H.map.provider.ImageTileProvider(getTruckLayerProvider(false));
-      const truckOverlayCongestionProvider = new H.map.provider.ImageTileProvider(getTruckLayerProvider(true));
-      const trafficOverlayProvider = new H.map.provider.ImageTileProvider(getTrafficOverlayProvider());
-      const trafficBaseProvider = new H.map.provider.ImageTileProvider(getTrafficBaseProvider());
-
-      truckOverlayLayerRef.current = new H.map.layer.TileLayer(truckOverlayProvider);
-      truckCongestionLayerRef.current = new H.map.layer.TileLayer(truckOverlayCongestionProvider);
-      trafficOverlayLayerRef.current = new H.map.layer.TileLayer(trafficOverlayProvider);
-      trafficBaseLayerRef.current = new H.map.layer.TileLayer(trafficBaseProvider);
 
       const hereMapEl = document.querySelector(`#map-container-${uniqueIdRef.current}`);
       const baseLayer = useVectorTiles
@@ -269,8 +219,10 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
       const behavior = interactive ? new H.mapevents.Behavior(new H.mapevents.MapEvents(newMap)) : undefined;
 
       if (behavior) {
-        // @ts-ignore
-        behavior.disable(H.mapevents.Behavior.Feature.FRACTIONAL_ZOOM);
+        if (!useVectorLayers) {
+          // @ts-ignore
+          behavior.disable(H.mapevents.Behavior.Feature.FRACTIONAL_ZOOM);
+        }
 
         // create the default UI for the map
         ui = H.ui.UI.createDefault(newMap, defaultLayersRef.current, language);
@@ -297,69 +249,6 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
       map?.dispose();
     };
   }, []);
-
-  useEffect(() => {
-    if (map) {
-      const satelliteBaseLayer = defaultLayersRef.current.raster.satellite.map;
-      const emptyBaseLayer = usedMapTiles.map;
-      const baseLayer = useSatellite
-        ? satelliteBaseLayer
-        : (trafficLayer && !useVectorTiles)
-         ? trafficBaseLayerRef.current
-         : emptyBaseLayer;
-
-      map.setBaseLayer(baseLayer);
-    }
-  }, [map, useSatellite, usedMapTiles, trafficLayer]);
-
-  useEffect(() => {
-    if (map) {
-      if (truckRestrictions) {
-        if (congestion) {
-          map.removeLayer(truckOverlayLayerRef.current);
-          map.addLayer(truckCongestionLayerRef.current);
-        } else {
-          map.removeLayer(truckCongestionLayerRef.current);
-          map.addLayer(truckOverlayLayerRef.current);
-        }
-      } else {
-        map.removeLayer(truckCongestionLayerRef.current);
-        map.removeLayer(truckOverlayLayerRef.current);
-      }
-    }
-  }, [truckRestrictions, congestion, map]);
-
-  useEffect(() => {
-    if (map) {
-      if (incidentsLayer) {
-        map.addLayer(usedMapTiles.trafficincidents);
-      } else {
-        map.removeLayer(usedMapTiles.trafficincidents);
-      }
-    }
-  }, [incidentsLayer, map, usedMapTiles]);
-
-  useEffect(() => {
-    if (map) {
-      if (trafficLayer) {
-        if (useVectorTiles) {
-          // Adding the vector traffic layer is not strictly necessary,
-          // however it's helpful because it changes the color for roads
-          // and highways to white which makes the traffic data more visible.
-          map.addLayer(defaultLayersRef.current.vector.normal.traffic);
-        }
-        // Ideally, we wouldn't need to add an additional layer here and
-        // the vector traffic layer added above would be enough, however
-        // the vector traffic layer is only visible on a high zoom level,
-        // and if the zoom level is changed using setMin, then performance
-        // issues appear.
-        map.addLayer(trafficOverlayLayerRef.current);
-      } else {
-        map.removeLayer(defaultLayersRef.current.vector.normal.traffic);
-        map.removeLayer(trafficOverlayLayerRef.current);
-      }
-    }
-  }, [trafficLayer, map]);
 
   useEffect(() => {
     if (map) {
