@@ -13,7 +13,8 @@
     "coverage:post": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "prepublishOnly": "gulp",
     "transpile": "gulp transpile",
-    "lint": "tslint --config tslint.json --project tsconfig.json --type-check"
+    "lint": "tslint --config tslint.json --project tsconfig.json --type-check",
+    "dev": "parcel testbench/index.html"
   },
   "repository": {
     "type": "git",
@@ -44,6 +45,7 @@
   },
   "homepage": "https://github.com/impargo/react-here-maps#readme",
   "devDependencies": {
+    "@babel/core": "^7.12.0",
     "@types/chai": "^4.0.1",
     "@types/enzyme": "^3.10.8",
     "@types/heremaps": "^3.1.5",
@@ -88,8 +90,8 @@
     "karma-source-map-support": "^1.1.0",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-spec-reporter": "0.0.31",
-    "karma-webpack": "^2.0.4",
     "mocha": "^3.0.2",
+    "parcel": "^2.8.3",
     "phantomjs-polyfill": "0.0.2",
     "phantomjs-prebuilt": "^2.1.12",
     "react": "^18.2.0",
@@ -107,10 +109,7 @@
     "tslint-react": "^3.0.0",
     "typescript": "^4.0.5",
     "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.7.0",
-    "webpack": "^2.7.0",
-    "webpack-stream": "^3.2.0",
-    "webpack-uglify-js-plugin": "^1.1.9"
+    "watchify": "^3.7.0"
   },
   "dependencies": {
     "loadjs": "^4.2.0",
