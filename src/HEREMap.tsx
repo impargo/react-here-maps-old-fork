@@ -122,19 +122,32 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     return map.screenToGeo(x, y);
   };
 
+  const zoomOnMarkersGroup = (markersGroup: H.map.Group, animate: boolean = true) => {
+    const DISTANCE_FACTOR = 0.1;
+    const BEARING_TOP_LEFT = 315;
+    const BEARING_BOTTOM_RIGHT = 135;
+    const boundingBox = markersGroup.getBoundingBox();
+    const topLeft = boundingBox.getTopLeft();
+    const bottomRight = boundingBox.getBottomRight();
+    const distance = topLeft.distance(bottomRight) * DISTANCE_FACTOR;
+    const viewBounds = H.geo.Rect.fromPoints(
+      topLeft.walk(BEARING_TOP_LEFT, distance),
+      bottomRight.walk(BEARING_BOTTOM_RIGHT, distance),
+    );
+    if (viewBounds) { map.getViewModel().setLookAtData({ bounds: viewBounds }, animate); }
+  };
+
   const zoomOnMarkers = (animate: boolean = true, group: string = "default") => {
     if (map) {
       if (!markersGroupsRef.current[group]) { return; }
-      const viewBounds = markersGroupsRef.current[group].getBoundingBox();
-      if (viewBounds) { map.getViewModel().setLookAtData({ bounds: viewBounds }, animate); }
+      zoomOnMarkersGroup(markersGroupsRef.current[group], animate);
     }
   };
 
   const zoomOnMarkersSet = (markersSet: H.map.DomMarker[], animate: boolean = true) => {
     const markersGroupSet = new H.map.Group();
     markersSet.map((m) => markersGroupSet.addObject(m));
-    const viewBounds = markersGroupSet.getBoundingBox();
-    if (viewBounds) { map.getViewModel().setLookAtData({ bounds: viewBounds }, animate); }
+    zoomOnMarkersGroup(markersGroupSet, animate);
   };
 
   const addToMarkerGroup = (marker: H.map.Marker, group: string) => {
