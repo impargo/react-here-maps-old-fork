@@ -108,7 +108,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     congestion,
     defaultLayers: defaultLayersRef.current,
     incidentsLayer,
-    lg,
+    locale: language,
     map,
     trafficLayer,
     truckRestrictions,

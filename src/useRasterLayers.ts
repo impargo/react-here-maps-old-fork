@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { Language } from "./utils/languages";
 
 export interface UseRasterLayersProps {
   map?: H.Map;
@@ -10,72 +9,41 @@ export interface UseRasterLayersProps {
   congestion?: boolean;
   defaultLayers?: H.service.DefaultLayers;
   apiKey: string;
-  lg?: Language;
   hidpi?: boolean;
   useVectorTiles: boolean;
+  locale?: string;
 }
 
-const getLayers = (apiKey: string, lg?: Language, hidpi?: boolean) => {
+const getLayers = (apiKey: string, locale?: string, hidpi?: boolean) => {
+  const lang = locale ?? "en";
+  const ppi = hidpi ? 400 : 100;
+  const format = "png8";
+
   const getTruckLayerProvider = (enableCongestion: boolean): H.map.provider.ImageTileProvider.Options => {
     return {
       max: 20,
       min: 8,
       getURL(col, row, level) {
-        return ["https://",
-          "1.base.maps.ls.hereapi.com/maptile/2.1/truckonlytile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?style=fleet",
-          "&apiKey=",
-          apiKey,
-          enableCongestion ? "&congestion" : "",
-          "&lg=",
-          lg,
-          "&ppi=",
-          hidpi ? "320" : "72",
-        ].join("");
+        const features = enableCongestion
+          ? "vehicle_restrictions:active_and_inactive,environmental_zones:all,congestion_zones:all"
+          : "vehicle_restrictions:active_and_inactive";
+        const style = "logistics.day";
+        return `https://maps.hereapi.com/v3/blank/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&features=${features}&lang=${lang}&ppi=${ppi}&style=${style}`;
       },
     };
   };
   const getTrafficOverlayProvider = (): H.map.provider.ImageTileProvider.Options => {
     return {
       getURL(col, row, level) {
-        return ["https://",
-          "1.traffic.maps.ls.hereapi.com/maptile/2.1/flowtile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?apiKey=",
-          apiKey,
-          "&ppi=",
-          hidpi ? "320" : "72",
-        ].join("");
+        return `https://traffic.maps.hereapi.com/v3/flow/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&ppi=${ppi}`;
       },
     };
   };
   const getTrafficBaseProvider = (): H.map.provider.ImageTileProvider.Options => {
     return {
       getURL(col, row, level) {
-        return ["https://",
-          "1.traffic.maps.ls.hereapi.com/maptile/2.1/traffictile/newest/normal.day/",
-          level,
-          "/",
-          col,
-          "/",
-          row,
-          "/256/png8",
-          "?apiKey=",
-          apiKey,
-          "&ppi=",
-          hidpi ? "320" : "72",
-        ].join("");
+        const style = "lite.day";
+        return `https://maps.hereapi.com/v3/base/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&lang=${lang}&ppi=${ppi}&style=${style}`;
       },
     };
   };
@@ -102,11 +70,11 @@ export const useRasterLayers = ({
   incidentsLayer,
   defaultLayers,
   apiKey,
-  lg,
+  locale,
   hidpi,
   useVectorTiles,
 }: UseRasterLayersProps) => {
-  const layers = useMemo(() => map && getLayers(apiKey, lg, hidpi), [apiKey, lg, hidpi, map]);
+  const layers = useMemo(() => map && getLayers(apiKey, locale, hidpi), [apiKey, locale, hidpi, map]);
 
   useEffect(() => {
     if (map && layers && !useVectorTiles && defaultLayers) {
