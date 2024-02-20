@@ -1,28 +1,29 @@
-import React, { useContext, useEffect, useState, FC } from "react";
-import * as ReactDOMServer from "react-dom/server";
-import { HEREMapContext, HEREMapContextType } from "./context";
-import { useEventHandlers, EventHandlers } from "./useEventHandlers";
-import getDomMarkerIcon from "./utils/get-dom-marker-icon";
-import getMarkerIcon from "./utils/get-marker-icon";
+import React, { FC, useContext, useEffect, useState } from 'react'
+import * as ReactDOMServer from 'react-dom/server'
+
+import { HEREMapContext, HEREMapContextType } from './context'
+import { EventHandlers, useEventHandlers } from './useEventHandlers'
+import getDomMarkerIcon from './utils/get-dom-marker-icon'
+import getMarkerIcon from './utils/get-marker-icon'
 
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap Marker componengetMartkerIdt
 export interface MarkerProps extends H.map.Marker.Options, EventHandlers {
-  lat: number;
-  lng: number;
+  lat: number,
+  lng: number,
   /**
    * Either an image URL or an SVG markup.
    */
-  bitmap?: string;
-  data?: any;
-  draggable?: boolean;
+  bitmap?: string,
+  data?: any,
+  draggable?: boolean,
   /**
    * @deprecated use bitmap instead. Passing children in this way has performance
    * implications since the 3.1 version of the API and should be avoided.
    */
-  children?: React.ReactElement<any>;
-  group?: string;
-  anchor?: H.math.IPoint;
+  children?: React.ReactElement<any>,
+  group?: string,
+  anchor?: H.math.IPoint,
 }
 
 /**
@@ -32,7 +33,7 @@ export interface MarkerProps extends H.map.Marker.Options, EventHandlers {
  */
 export const Marker: FC<MarkerProps> = ({
   children,
-  group = "default",
+  group = 'default',
   bitmap,
   data,
   draggable = false,
@@ -48,13 +49,13 @@ export const Marker: FC<MarkerProps> = ({
   onDragStart,
   ...options
 }) => {
-  const { map, removeFromMarkerGroup, addToMarkerGroup } = useContext<HEREMapContextType>(HEREMapContext);
+  const { map, removeFromMarkerGroup, addToMarkerGroup } = useContext<HEREMapContextType>(HEREMapContext)
 
-  const [marker, setMarker] = useState<H.map.DomMarker | H.map.Marker | null>(null);
+  const [marker, setMarker] = useState<H.map.DomMarker | H.map.Marker | null>(null)
 
   const renderChildren = (): H.map.DomIcon => {
     if (!map) {
-      throw new Error("Map has to be loaded before performing this action");
+      throw new Error('Map has to be loaded before performing this action')
     }
 
     // if children are provided, we render the provided react
@@ -63,42 +64,42 @@ export const Marker: FC<MarkerProps> = ({
       <div className="dom-marker">
         {children}
       </div>
-    ));
+    ))
 
     // we then get a dom icon object from the wrapper method
-    return getDomMarkerIcon(html);
-  };
+    return getDomMarkerIcon(html)
+  }
 
   const addMarkerToMap = () => {
     if (!map) {
-      throw new Error("Map has to be loaded before performing this action");
+      throw new Error('Map has to be loaded before performing this action')
     }
 
-    let newMarker = null;
+    let newMarker = null
     if (React.Children.count(children) > 0) {
-      const icon = renderChildren();
-      newMarker = new H.map.DomMarker({ lat, lng }, { icon });
+      const icon = renderChildren()
+      newMarker = new H.map.DomMarker({ lat, lng }, { icon })
     } else if (bitmap) {
       // if we have an image url or an svg markup and no react children, create a
       // regular icon instance
-      const icon = getMarkerIcon(bitmap, anchor);
+      const icon = getMarkerIcon(bitmap, anchor)
       // then create a normal marker instance and attach it to the map
       newMarker = new H.map.Marker({ lat, lng }, {
         icon,
         // @ts-ignore
         volatility: draggable,
         ...options,
-      });
+      })
     } else {
       // create a default marker at the provided location
-      newMarker = new H.map.Marker({ lat, lng });
+      newMarker = new H.map.Marker({ lat, lng })
     }
-    newMarker.draggable = draggable;
-    newMarker.setData(data);
-    addToMarkerGroup(newMarker, group);
-    setMarker(newMarker);
-    return newMarker;
-  };
+    newMarker.draggable = draggable
+    newMarker.setData(data)
+    addToMarkerGroup(newMarker, group)
+    setMarker(newMarker)
+    return newMarker
+  }
 
   useEventHandlers(marker, {
     onDrag,
@@ -108,48 +109,48 @@ export const Marker: FC<MarkerProps> = ({
     onPointerLeave,
     onPointerMove,
     onTap,
-  });
+  })
 
   useEffect(() => {
-    const addedMarker = addMarkerToMap();
+    const addedMarker = addMarkerToMap()
     return () => {
-      removeFromMarkerGroup(addedMarker, group);
-    };
-  }, [group]);
+      removeFromMarkerGroup(addedMarker, group)
+    }
+  }, [group])
 
   useEffect(() => {
     if (marker) {
-      marker.draggable = draggable;
+      marker.draggable = draggable
       // @ts-ignore
-      marker.setVolatility(draggable);
+      marker.setVolatility(draggable)
     }
-  }, [marker, draggable]);
+  }, [marker, draggable])
 
   useEffect(() => {
     marker?.setGeometry({
       lat,
       lng,
-    });
-  }, [marker, lat, lng]);
+    })
+  }, [marker, lat, lng])
 
   useEffect(() => {
-    marker?.setData(data);
-  }, [marker, data]);
+    marker?.setData(data)
+  }, [marker, data])
 
   useEffect(() => {
     if (bitmap) {
-      marker?.setIcon(getMarkerIcon(bitmap, anchor));
+      marker?.setIcon(getMarkerIcon(bitmap, anchor))
     }
-  }, [marker, bitmap, anchor]);
+  }, [marker, bitmap, anchor])
 
   useEffect(() => {
     if (React.Children.count(children)) {
-      const icon = renderChildren();
-      marker?.setIcon(icon);
+      const icon = renderChildren()
+      marker?.setIcon(icon)
     }
-  }, [marker, children?.props]);
+  }, [marker, children?.props])
 
-  return null;
-};
+  return null
+}
 
-export default Marker;
+export default Marker

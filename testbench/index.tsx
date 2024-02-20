@@ -1,4 +1,4 @@
-import React, { FC } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom'
 
 import { HEREMap } from '../src/HEREMap'
@@ -19,8 +19,6 @@ ReactDOM.render(
     useVectorTiles
     onMapAvailable={() => console.log('Map is available')}
     disableMapSettings
-  >
-    
-  </HEREMap>,
+  />,
   document.getElementById('root'),
 )
