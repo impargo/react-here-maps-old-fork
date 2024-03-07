@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { Language } from "./utils/languages";
 
 export interface UseRasterLayersProps {
   map?: H.Map;
@@ -12,9 +13,22 @@ export interface UseRasterLayersProps {
   hidpi?: boolean;
   useVectorTiles: boolean;
   locale?: string;
+  /**
+   * @deprecated
+   */
+  lg?: Language;
+  useLegacyTruckLayer?: boolean;
+  useLegacyTrafficLayer?: boolean;
 }
 
-const getLayers = (apiKey: string, locale?: string, hidpi?: boolean) => {
+const getLayers = (
+  apiKey: string,
+  locale?: string,
+  lg?: string,
+  hidpi?: boolean,
+  useLegacyTruckLayer?: boolean,
+  useLegacyTrafficLayer?: boolean,
+) => {
   const lang = locale ?? "en";
   const ppi = hidpi ? 400 : 100;
   const format = "png8";
@@ -48,10 +62,82 @@ const getLayers = (apiKey: string, locale?: string, hidpi?: boolean) => {
     };
   };
 
-  const truckOverlayProvider = new H.map.provider.ImageTileProvider(getTruckLayerProvider(false));
-  const truckOverlayCongestionProvider = new H.map.provider.ImageTileProvider(getTruckLayerProvider(true));
-  const trafficOverlayProvider = new H.map.provider.ImageTileProvider(getTrafficOverlayProvider());
-  const trafficBaseProvider = new H.map.provider.ImageTileProvider(getTrafficBaseProvider());
+  const getTruckLayerProviderLegacy = (enableCongestion: boolean): H.map.provider.ImageTileProvider.Options => {
+    return {
+      max: 20,
+      min: 8,
+      getURL(col, row, level) {
+        return ["https://",
+          "1.base.maps.ls.hereapi.com/maptile/2.1/truckonlytile/newest/normal.day/",
+          level,
+          "/",
+          col,
+          "/",
+          row,
+          "/256/png8",
+          "?style=fleet",
+          "&apiKey=",
+          apiKey,
+          enableCongestion ? "&congestion" : "",
+          "&lg=",
+          lg,
+          "&ppi=",
+          hidpi ? "320" : "72",
+        ].join("");
+      },
+    };
+  };
+  const getTrafficOverlayProviderLegacy = (): H.map.provider.ImageTileProvider.Options => {
+    return {
+      getURL(col, row, level) {
+        return ["https://",
+          "1.traffic.maps.ls.hereapi.com/maptile/2.1/flowtile/newest/normal.day/",
+          level,
+          "/",
+          col,
+          "/",
+          row,
+          "/256/png8",
+          "?apiKey=",
+          apiKey,
+          "&ppi=",
+          hidpi ? "320" : "72",
+        ].join("");
+      },
+    };
+  };
+  const getTrafficBaseProviderLegacy = (): H.map.provider.ImageTileProvider.Options => {
+    return {
+      getURL(col, row, level) {
+        return ["https://",
+          "1.traffic.maps.ls.hereapi.com/maptile/2.1/traffictile/newest/normal.day/",
+          level,
+          "/",
+          col,
+          "/",
+          row,
+          "/256/png8",
+          "?apiKey=",
+          apiKey,
+          "&ppi=",
+          hidpi ? "320" : "72",
+        ].join("");
+      },
+    };
+  };
+
+  const truckOverlayProvider = new H.map.provider.ImageTileProvider(useLegacyTruckLayer
+    ? getTruckLayerProviderLegacy(false)
+    : getTruckLayerProvider(false));
+  const truckOverlayCongestionProvider = new H.map.provider.ImageTileProvider(useLegacyTruckLayer
+    ? getTruckLayerProviderLegacy(true)
+    : getTruckLayerProvider(true));
+  const trafficOverlayProvider = new H.map.provider.ImageTileProvider(useLegacyTrafficLayer
+    ? getTrafficOverlayProviderLegacy()
+    : getTrafficOverlayProvider());
+  const trafficBaseProvider = new H.map.provider.ImageTileProvider(useLegacyTrafficLayer
+    ? getTrafficBaseProviderLegacy()
+    : getTrafficBaseProvider());
 
   return {
     trafficBaseLayer: new H.map.layer.TileLayer(trafficBaseProvider),
@@ -73,8 +159,18 @@ export const useRasterLayers = ({
   locale,
   hidpi,
   useVectorTiles,
+  lg,
+  useLegacyTrafficLayer,
+  useLegacyTruckLayer,
 }: UseRasterLayersProps) => {
-  const layers = useMemo(() => map && getLayers(apiKey, locale, hidpi), [apiKey, locale, hidpi, map]);
+  const layers = useMemo(() => map && getLayers(
+    apiKey,
+    locale,
+    lg,
+    hidpi,
+    useLegacyTruckLayer,
+    useLegacyTrafficLayer),
+    [apiKey, locale, lg, hidpi, map, useLegacyTruckLayer, useLegacyTrafficLayer]);
 
   useEffect(() => {
     if (map && layers && !useVectorTiles && defaultLayers) {

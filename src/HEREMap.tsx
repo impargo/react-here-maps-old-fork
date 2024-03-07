@@ -37,6 +37,9 @@ export interface HEREMapProps extends H.Map.Options {
    */
   useVectorTiles?: boolean;
   onScriptLoadError?: (failedScripts: string[]) => void;
+
+  useLegacyTruckLayer?: boolean;
+  useLegacyTrafficLayer?: boolean;
 }
 
 // declare an interface containing the potential state flags
@@ -82,6 +85,8 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   animateZoom,
   animateCenter,
   useVectorTiles,
+  useLegacyTrafficLayer,
+  useLegacyTruckLayer,
 },                                                           ref) => {
   const uniqueIdRef = useRef<string>(uniqueId());
 
@@ -108,10 +113,13 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     congestion,
     defaultLayers: defaultLayersRef.current,
     incidentsLayer,
+    lg,
     locale: language,
     map,
     trafficLayer,
     truckRestrictions,
+    useLegacyTrafficLayer,
+    useLegacyTruckLayer,
     useSatellite,
     useVectorTiles,
   });
