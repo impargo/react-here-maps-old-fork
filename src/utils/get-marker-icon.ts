@@ -12,7 +12,7 @@ export const Icons = new Map<string, H.map.Icon>()
  */
 export default function getMarkerIcon (bitmap: string, anchor?: H.math.IPoint): H.map.Icon {
   if (!Icons.has(bitmap)) {
-    const icon = new H.map.Icon(bitmap, anchor ? { anchor, crossOrigin: false } : undefined)
+    const icon = new H.map.Icon(bitmap, anchor ? { anchor } : undefined)
     Icons.set(bitmap, icon)
   }
 

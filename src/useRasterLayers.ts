@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 
+import type { DefaultLayers } from './types'
 import { Language } from './utils/languages'
 
 export interface UseRasterLayersProps {
@@ -9,7 +10,7 @@ export interface UseRasterLayersProps {
   incidentsLayer?: boolean,
   useSatellite?: boolean,
   congestion?: boolean,
-  defaultLayers?: H.service.DefaultLayers,
+  defaultLayers?: DefaultLayers,
   apiKey: string,
   hidpi?: boolean,
   useVectorTiles: boolean,
@@ -31,7 +32,7 @@ const getLayers = (
   useLegacyTrafficLayer?: boolean,
 ) => {
   const lang = locale ?? 'en'
-  const ppi = hidpi ? 400 : 100
+  const ppi = hidpi ? '&ppi=400' : ''
   const format = 'png8'
 
   const getTruckLayerProvider = (enableCongestion: boolean): H.map.provider.ImageTileProvider.Options => {
@@ -43,14 +44,14 @@ const getLayers = (
           ? 'vehicle_restrictions:active_and_inactive,environmental_zones:all,congestion_zones:all'
           : 'vehicle_restrictions:active_and_inactive'
         const style = 'logistics.day'
-        return `https://maps.hereapi.com/v3/blank/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&features=${features}&lang=${lang}&ppi=${ppi}&style=${style}`
+        return `https://maps.hereapi.com/v3/blank/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&features=${features}&lang=${lang}&style=${style}${ppi}`
       },
     }
   }
   const getTrafficOverlayProvider = (): H.map.provider.ImageTileProvider.Options => {
     return {
       getURL (col, row, level) {
-        return `https://traffic.maps.hereapi.com/v3/flow/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&ppi=${ppi}`
+        return `https://traffic.maps.hereapi.com/v3/flow/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}${ppi}`
       },
     }
   }
@@ -58,7 +59,7 @@ const getLayers = (
     return {
       getURL (col, row, level) {
         const style = 'lite.day'
-        return `https://maps.hereapi.com/v3/base/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&lang=${lang}&ppi=${ppi}&style=${style}`
+        return `https://maps.hereapi.com/v3/base/mc/${level}/${col}/${row}/${format}?apiKey=${apiKey}&lang=${lang}&style=${style}${ppi}`
       },
     }
   }

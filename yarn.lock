@@ -343,6 +343,11 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.56.0.tgz#ef20350fec605a7f7035a01764731b2de0f3782b"
   integrity sha512-gMsVel9D7f2HLkBma9VbtzZRehRogVRfbr++f06nL2vnCGCNlzOD+/MUov/F4p8myyAHspEhVobgjpX64q5m6A==
 
+"@here/maps-api-for-javascript@^1.61.1":
+  version "1.61.1"
+  resolved "https://repo.platform.here.com/artifactory/api/npm/maps-api-for-javascript/-/@here/maps-api-for-javascript-1.61.1.tgz#4f592e576e6d73674494b8c0680a0cf02788dd11"
+  integrity sha1-T1kuV25tc2dElLjAaAoM8CeI3RE=
+
 "@humanwhocodes/config-array@^0.11.13":
   version "0.11.14"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.11.14.tgz#d78e481a039f7566ecc9660b4ea7fe6b1fec442b"
@@ -1124,11 +1129,6 @@
     "@types/cheerio" "*"
     "@types/react" "*"
 
-"@types/heremaps@^3.1.5":
-  version "3.1.5"
-  resolved "https://registry.yarnpkg.com/@types/heremaps/-/heremaps-3.1.5.tgz#fa0eca4a923d00b0092517e7c1745649fb8b50e3"
-  integrity sha512-I9hLvguxz4+waIoJajJFravPNOk1tiRf4LylBLk7hnQXjX/qVJn5ZTBLskAGjB047VyTKPE7Eb/yO43Ssjok/g==
-
 "@types/highlight.js@^9.1.9":
   version "9.12.4"
   resolved "https://registry.yarnpkg.com/@types/highlight.js/-/highlight.js-9.12.4.tgz#8c3496bd1b50cc04aeefd691140aa571d4dbfa34"
@@ -1150,11 +1150,6 @@
   version "0.0.29"
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
-
-"@types/loadjs@^4.0.0":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@types/loadjs/-/loadjs-4.0.1.tgz#85e77dcad99d58236462393145eccbbc9dad0fe5"
-  integrity sha512-UEMOleWwITwDvj+kI6T4etC9yMjmejH6UdJRAa1MWZwzDIW+Iz7T6z6Zc96N/5FeFsxAEBA/zP1ki+HluXPcHQ==
 
 "@types/lodash@^4.14.68":
   version "4.14.182"
@@ -7233,11 +7228,6 @@ loader-utils@^1.0.1, loader-utils@^1.0.2, loader-utils@^1.1.0:
     big.js "^5.2.2"
     emojis-list "^3.0.0"
     json5 "^1.0.1"
-
-loadjs@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/loadjs/-/loadjs-4.2.0.tgz#2a0336376397a6a43edf98c9ec3229ddd5abb6f6"
-  integrity sha512-AgQGZisAlTPbTEzrHPb6q+NYBMD+DP9uvGSIjSUM5uG+0jG15cb8axWpxuOIqrmQjn6scaaH8JwloiP27b2KXA==
 
 locate-path@^2.0.0:
   version "2.0.0"

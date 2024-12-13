@@ -8,14 +8,14 @@ import getMarkerIcon from './utils/get-marker-icon'
 
 // declare an interface containing the required and potential
 // props that can be passed to the HEREMap Marker componengetMartkerIdt
-export interface MarkerProps extends H.map.Marker.Options, EventHandlers {
+export interface MarkerProps extends Omit<H.map.Marker.Options, 'data'>, EventHandlers {
   lat: number,
   lng: number,
   /**
    * Either an image URL or an SVG markup.
    */
   bitmap?: string,
-  data?: any,
+  data?: unknown,
   draggable?: boolean,
   /**
    * @deprecated use bitmap instead. Passing children in this way has performance
@@ -78,7 +78,7 @@ export const Marker: FC<MarkerProps> = ({
     let newMarker = null
     if (React.Children.count(children) > 0) {
       const icon = renderChildren()
-      newMarker = new H.map.DomMarker({ lat, lng }, { icon })
+      newMarker = new H.map.DomMarker({ lat, lng }, { icon, data: null })
     } else if (bitmap) {
       // if we have an image url or an svg markup and no react children, create a
       // regular icon instance
@@ -86,8 +86,8 @@ export const Marker: FC<MarkerProps> = ({
       // then create a normal marker instance and attach it to the map
       newMarker = new H.map.Marker({ lat, lng }, {
         icon,
-        // @ts-ignore
         volatility: draggable,
+        data: null,
         ...options,
       })
     } else {
@@ -121,7 +121,6 @@ export const Marker: FC<MarkerProps> = ({
   useEffect(() => {
     if (marker) {
       marker.draggable = draggable
-      // @ts-ignore
       marker.setVolatility(draggable)
     }
   }, [marker, draggable])

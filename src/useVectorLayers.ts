@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 
+import { DefaultLayers } from './types'
+
 export interface UseVectorLayersProps {
   map?: H.Map,
   truckRestrictions?: boolean,
@@ -7,7 +9,7 @@ export interface UseVectorLayersProps {
   incidentsLayer?: boolean,
   useSatellite?: boolean,
   congestion?: boolean,
-  defaultLayers?: H.service.DefaultLayers,
+  defaultLayers?: DefaultLayers,
   useVectorTiles: boolean,
 }
 
@@ -24,7 +26,6 @@ export const useVectorLayers = ({
   useEffect(() => {
     if (map && defaultLayers && useVectorTiles) {
       if (truckRestrictions) {
-        // @ts-ignore
         map.setBaseLayer(defaultLayers.vector.normal.truck)
       } else {
         map.setBaseLayer(useSatellite

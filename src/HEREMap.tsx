@@ -1,10 +1,12 @@
+import '@here/maps-api-for-javascript/bin/mapsjs.bundle.harp.js'
+
 import { debounce, uniqueId } from 'lodash'
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 import { HEREMapContext } from './context'
+import type { DefaultLayers } from './types'
 import { useRasterLayers } from './useRasterLayers'
 import { useVectorLayers } from './useVectorLayers'
-import { loadScripts } from './utils/cache'
 import getPlatform from './utils/get-platform'
 import { Language } from './utils/languages'
 
@@ -18,6 +20,9 @@ export interface HEREMapProps extends H.Map.Options {
   hidpi?: boolean,
   interactive?: boolean,
   lg?: Language,
+  /**
+   * @deprecated no longer supported. HERE Maps JS is now bundled with this package.
+   */
   secure?: boolean,
   routes?: object[],
   truckRestrictions?: boolean,
@@ -36,6 +41,9 @@ export interface HEREMapProps extends H.Map.Options {
    * If you want to change it, you have to re-mount the map component.
    */
   useVectorTiles?: boolean,
+  /**
+   * @deprecated no longer supported. HERE Maps JS is now bundled with this package so there can longer be script loading errors.
+   */
   onScriptLoadError?: (failedScripts: string[]) => void,
 
   useLegacyTruckLayer?: boolean,
@@ -66,8 +74,6 @@ export interface HEREMapRef {
 
 export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   children,
-  secure,
-  onScriptLoadError,
   center,
   hidpi,
   interactive = true,
@@ -95,7 +101,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
 
   const markersGroupsRef = useRef<Record<string, H.map.Group>>({})
 
-  const defaultLayersRef = useRef<H.service.DefaultLayers>(null)
+  const defaultLayersRef = useRef<DefaultLayers>(null)
 
   useVectorLayers({
     congestion,
@@ -122,6 +128,7 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
     useLegacyTruckLayer,
     useSatellite,
     useVectorTiles,
+    hidpi,
   })
 
   const unmountedRef = useRef(false)
@@ -197,73 +204,69 @@ export const HEREMap = forwardRef<HEREMapRef, HEREMapProps>(({
   }, [map])
 
   useEffect(() => {
-    loadScripts(secure, !useVectorTiles).then(() => {
-      if (unmountedRef.current) {
-        return
+    if (unmountedRef.current) {
+      return
+    }
+
+    // get the platform to base the maps on
+    const platform = getPlatform({
+      apikey: apiKey,
+    })
+
+    const engineType = useVectorTiles ? H.Map.EngineType.HARP : H.Map.EngineType.P2D
+
+    defaultLayersRef.current = platform.createDefaultLayers({
+      lg,
+      engineType,
+    }) as DefaultLayers
+
+    const hereMapEl = document.querySelector(`#map-container-${uniqueIdRef.current}`) as HTMLElement
+    const baseLayer = useVectorTiles
+      ? defaultLayersRef.current.vector.normal.map
+      : defaultLayersRef.current.raster.normal.map
+    const newMap = new H.Map(
+      hereMapEl,
+      baseLayer,
+      {
+        center,
+        engineType,
+        pixelRatio: hidpi ? 2 : 1,
+        zoom,
+      },
+    )
+
+    const routesProvider = new H.map.provider.LocalObjectProvider()
+    const routesLayer = new H.map.layer.ObjectLayer(routesProvider)
+    newMap.addLayer(routesLayer)
+
+    let ui: H.ui.UI
+
+    // make the map interactive
+    // MapEvents enables the event system
+    // Behavior implements default interactions for pan/zoom
+    const behavior = interactive ? new H.mapevents.Behavior(new H.mapevents.MapEvents(newMap)) : undefined
+
+    if (behavior) {
+      behavior.disable(H.mapevents.Behavior.Feature.FRACTIONAL_ZOOM)
+
+      // create the default UI for the map
+      ui = H.ui.UI.createDefault(newMap, defaultLayersRef.current, language)
+      if (disableMapSettings) {
+        ui.removeControl('mapsettings')
       }
+    }
 
-      // get the platform to base the maps on
-      const platform = getPlatform({
-        apikey: apiKey,
-        useHTTPS: secure === true,
-      })
-      defaultLayersRef.current = platform.createDefaultLayers({
-        lg,
-        ppi: hidpi ? 320 : 72,
-      })
+    setMap(newMap)
+    setRoutesGroup(routesProvider.getRootGroup())
 
-      const hereMapEl = document.querySelector(`#map-container-${uniqueIdRef.current}`)
-      const baseLayer = useVectorTiles
-        ? defaultLayersRef.current.vector.normal.map
-        : defaultLayersRef.current.raster.normal.map
-      const newMap = new H.Map(
-        hereMapEl,
-        baseLayer,
-        {
-          center,
-          // @ts-ignore
-          engineType: useVectorTiles ? undefined : H.map.render.RenderEngine.EngineType.P2D,
-          pixelRatio: hidpi ? 2 : 1,
-          zoom,
-        },
-      )
-
-      const routesProvider = new H.map.provider.LocalObjectProvider()
-      const routesLayer = new H.map.layer.ObjectLayer(routesProvider)
-      newMap.addLayer(routesLayer)
-
-      let ui: H.ui.UI
-
-      // make the map interactive
-      // MapEvents enables the event system
-      // Behavior implements default interactions for pan/zoom
-      const behavior = interactive ? new H.mapevents.Behavior(new H.mapevents.MapEvents(newMap)) : undefined
-
-      if (behavior) {
-        if (!useVectorLayers) {
-          // @ts-ignore
-          behavior.disable(H.mapevents.Behavior.Feature.FRACTIONAL_ZOOM)
-        }
-
-        // create the default UI for the map
-        ui = H.ui.UI.createDefault(newMap, defaultLayersRef.current, language)
-        if (disableMapSettings) {
-          ui.removeControl('mapsettings')
-        }
-      }
-
-      setMap(newMap)
-      setRoutesGroup(routesProvider.getRootGroup())
-
-      onMapAvailable({
-        behavior,
-        map: newMap,
-        markersGroups: markersGroupsRef.current,
-        routesGroup: routesProvider.getRootGroup(),
-        trafficLayer,
-        ui,
-      })
-    }).catch(onScriptLoadError)
+    onMapAvailable({
+      behavior,
+      map: newMap,
+      markersGroups: markersGroupsRef.current,
+      routesGroup: routesProvider.getRootGroup(),
+      trafficLayer,
+      ui,
+    })
 
     return () => {
       unmountedRef.current = true

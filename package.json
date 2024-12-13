@@ -49,10 +49,8 @@
     "@impargo/eslint-config": "^1.4.0",
     "@types/chai": "^4.0.1",
     "@types/enzyme": "^3.10.8",
-    "@types/heremaps": "^3.1.5",
     "@types/highlight.js": "^9.1.9",
     "@types/jquery": "^3.2.6",
-    "@types/loadjs": "^4.0.0",
     "@types/lodash": "^4.14.68",
     "@types/mocha": "^2.2.41",
     "@types/node": "^14.14.8",
@@ -112,7 +110,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "loadjs": "^4.2.0",
+    "@here/maps-api-for-javascript": "^1.61.1",
     "lodash": "^4.15.0"
   },
   "peerDependencies": {

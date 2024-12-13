@@ -11,14 +11,14 @@ if (!process.env.HERE_APIKEY) {
 ReactDOM.render(
   <HEREMap
     apiKey={process.env.HERE_APIKEY}
-    secure
     center={{ lat: 51.528098, lng: 9.951222 }}
     zoom={6}
     truckRestrictions
-    trafficLayer
-    useVectorTiles
+    // trafficLayer
+    // useVectorTiles
     onMapAvailable={() => console.log('Map is available')}
     disableMapSettings
+    hidpi={devicePixelRatio > 1}
   />,
   document.getElementById('root'),
 )

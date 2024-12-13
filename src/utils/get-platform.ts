@@ -1,3 +1,5 @@
+import '@here/maps-api-for-javascript/bin/mapsjs.bundle.harp.js'
+
 let platform: H.service.Platform
 
 // return the current platform if there is one,

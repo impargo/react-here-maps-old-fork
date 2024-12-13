@@ -74,7 +74,6 @@ export const Route: FC<RoutesProps> = ({
 
   useEffect(() => {
     if (polyline && typeof draggable === 'boolean') {
-      // @ts-ignore
       polyline.draggable = draggable
     }
   }, [polyline, draggable])

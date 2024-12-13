@@ -8,7 +8,7 @@
 react-here-maps
 ==============
 
-React Wrapper for the HERE Maps API for JavaScript (v3.0.12.4)
+React Wrapper for the HERE Maps API for JavaScript (v3.1)
 
 [![Version][npm-image]][npm-url] [![Gemnasium][gemnasium-image]][gemnasium-url] [![Travis][travis-ci-image]][travis-ci-url] [![Coveralls][coveralls-image]][coveralls-url]
 
@@ -22,7 +22,16 @@ The documentation provided in this README is specific to the platform. Note that
 Dependencies
 --------------
 
-The module will automatically load the [HERE Maps API][here-maps-link] scripts and stylesheets for you. We follow this practice because the scripts themselves are split into multiple modules and we hope to conditionally load these scripts at some point in the future based on the features that the user of the module wishes to use.
+The module is dependant on @here/maps-api-for-javascript packaged and hosted by HERE. To make sure it installs correctly in your environment, make sure you have the correct registry URL configured.
+
+- Run this
+```
+npm config set @here:registry https://repo.platform.here.com/artifactory/api/npm/maps-api-for-javascript/
+```
+- Or, add this to your .npmrc
+```
+@here:registry=https://repo.platform.here.com/artifactory/api/npm/maps-api-for-javascript/
+```
 
 Quick Start
 --------------
