@@ -1,0 +1,50 @@
+name: PUBLISH
+on:    
+  repository_dispatch:
+    types: [publish-command]
+jobs:
+  release-pull-request:
+    name: ReleaseAction
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.event.client_payload.pull_request.head.ref }}
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 14
+        registry-url: https://npm.pkg.github.com/
+    - name: Install
+      run: yarn install --frozen-lockfile
+    - name: Get Latest @impargo/react-here-maps version
+      id: package-lts-version
+      run: | 
+        PACKAGE_LTS_VERSION=$(npm view @impargo/react-here-maps dist-tags.latest)
+        major_version=$(echo $PACKAGE_LTS_VERSION | cut -d'-' -f1)
+        echo "::set-output name=LTS_VERSION::$major_version"
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: publish-gpr
+      run:  |
+        git config --global user.email "action@github.com"
+        git config --global user.name  "GitHub Action"
+        yarn publish --no-git-tag-version --new-version ${{ steps.package-lts-version.outputs.LTS_VERSION }}-pre-${{ github.run_number }}
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    - name: Show Published version
+      run: |
+        echo "PACKAGE VERSION: ${{ steps.package-lts-version.outputs.LTS_VERSION }}-pre-${{ github.run_number }}"
+    - name: Create comment
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+        issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
+        reactions: rocket,hooray
+        body: |
+          RUN URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PACKAGE VERSION: ${{ steps.package-lts-version.outputs.LTS_VERSION }}-pre-${{ github.run_number }}
