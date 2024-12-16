@@ -5,11 +5,13 @@ on:
 jobs:
   slash-command:
     runs-on: ubuntu-latest
+    permissions:
+      workflow: write
     steps:
     - uses: actions/checkout@v2
     - uses: peter-evans/slash-command-dispatch@v2
       with:
-        token: ${{secrets.ADMIN_ACCESS_TOKEN}}
+        token: ${{secrets.GH_TOKEN}}
         issue-type: pull-request
         commands: |
           publish
