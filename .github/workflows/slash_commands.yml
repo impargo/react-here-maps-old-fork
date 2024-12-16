@@ -6,7 +6,7 @@ jobs:
   slash-command:
     runs-on: ubuntu-latest
     permissions:
-      workflow: write
+      actions: write
     steps:
     - uses: actions/checkout@v2
     - uses: peter-evans/slash-command-dispatch@v2
