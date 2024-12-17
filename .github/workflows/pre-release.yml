@@ -37,16 +37,9 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-    - name: Show Published version
+    - name: Display Version
       run: |
-        echo "PACKAGE VERSION: ${{ steps.package-lts-version.outputs.LTS_VERSION }}-pre-${{ github.run_number }}"
-    - name: Create comment
-      uses: peter-evans/create-or-update-comment@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
-        issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
-        reactions: rocket,hooray
-        body: |
-          RUN URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          PACKAGE VERSION: ${{ steps.package-lts-version.outputs.LTS_VERSION }}-pre-${{ github.run_number }}
+        echo ""
+        echo -e "\033[1;34m==========================================\033[0m"
+        echo -e "\033[1;32m       🚀 Version: ${{ steps.package-lts-version.outputs.LTS_VERSION }}-pre-${{ github.run_number }}       \033[0m"
+        echo -e "\033[1;34m==========================================\033[0m"

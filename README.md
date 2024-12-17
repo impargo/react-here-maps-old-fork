@@ -184,4 +184,4 @@ If the Marker component has children, we generate that markup and use it as a Do
 
 ### Publishing a Pre-release Package Version
 
-To generate a pre-release package from the changes in a pull request, add a `/publish` comment in the PR. This will publish a new package version and add a comment in the PR with the details of the published version.
+To generate a pre-release package from the changes in a pull request, add a `/publish` comment in the PR. This will publish a new package version and then you can check the Display Version step in the Action run to find the details of the published version.
