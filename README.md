@@ -1,3 +1,6 @@
+# Important!
+This repo is no longer mainted. Refer to https://github.com/impargo/react-here-maps for more information.
+
 ### Unofficial fork
 
 #### Differences from original package
